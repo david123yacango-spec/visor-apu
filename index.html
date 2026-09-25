@@ -38,6 +38,7 @@ button{font:inherit;cursor:pointer}
 .cab .btn{background:transparent;border-color:var(--cabecera-linea);color:var(--cabecera-texto)}
 .cab .btn:hover{background:var(--cabecera-hover)}
 .cab .btn .corto{display:none}
+@media (min-width:701px){ #btnCambiar{display:none!important} }
 
 /* ── portada de acceso y carga ── */
 .portada{min-height:calc(100vh - var(--cabecera-alto));display:grid;place-items:center;padding:24px 16px}
@@ -63,6 +64,33 @@ button{font:inherit;cursor:pointer}
 .suelta .btn.principal{width:100%;margin-top:4px}
 .suelta .cambiar{font-size:var(--t-aux);color:var(--gris);text-align:center}
 .suelta .cambiar button{all:unset;color:var(--azul);cursor:pointer}
+.suelta .recordar{display:flex;gap:8px;align-items:flex-start;font-size:var(--t-aux);color:var(--tinta-2);text-align:left;cursor:pointer}
+.suelta .recordar input{margin-top:2px}
+/* proyectos guardados en este navegador (portada) */
+.guardados{text-align:left;margin:0 0 16px;display:grid;gap:6px}
+.guardados h2{font-size:var(--t-aux);font-weight:600;color:var(--tinta-2);margin:0;text-transform:uppercase;letter-spacing:.06em}
+.guardados .pr{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--linea);border-radius:var(--radio);padding:8px 10px;background:var(--superficie-2)}
+.guardados .pr button.abrir{all:unset;cursor:pointer;display:grid;gap:2px;min-width:0}
+.guardados .pr button.abrir:hover b{color:var(--azul)}
+.guardados .pr b{font-weight:600;font-size:var(--t-tabla);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guardados .pr span{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guardados .pr .quitar{border:1px solid var(--linea-fuerte);background:var(--superficie);color:var(--gris);border-radius:var(--radio);padding:2px 8px;font-size:var(--t-aux)}
+.guardados .pr .quitar:hover{color:var(--rojo);border-color:var(--rojo)}
+.guardados .borrar{all:unset;cursor:pointer;font-size:var(--t-aux);color:var(--gris);justify-self:end}
+.guardados .borrar:hover{color:var(--rojo)}
+/* pestañas de proyectos (bajo la cabecera) */
+.pestanas{display:flex;gap:4px;align-items:flex-end;padding:8px 16px 0;max-width:1720px;margin:0 auto;overflow-x:auto;scrollbar-width:thin}
+.pestanas .pe{display:flex;align-items:center;gap:6px;border:1px solid var(--linea);border-bottom:0;border-radius:var(--radio) var(--radio) 0 0;background:var(--superficie-2);padding:6px 8px 6px 12px;max-width:320px;flex:none}
+.pestanas .pe button.nom{all:unset;cursor:pointer;display:grid;min-width:0}
+.pestanas .pe b{font-weight:600;font-size:var(--t-aux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tinta-2)}
+.pestanas .pe small{font-family:var(--f-datos);font-size:10px;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pestanas .pe.activa{background:var(--superficie);box-shadow:inset 0 2px 0 var(--azul)}
+.pestanas .pe.activa b{color:var(--tinta)}
+.pestanas .pe .x{all:unset;cursor:pointer;color:var(--gris);font-size:12px;width:18px;height:18px;display:grid;place-items:center;border-radius:4px}
+.pestanas .pe .x:hover{background:var(--superficie-3);color:var(--rojo)}
+.pestanas .mas{border:1px dashed var(--linea-fuerte);background:transparent;color:var(--tinta-2);border-radius:var(--radio) var(--radio) 0 0;padding:8px 12px;font-size:var(--t-aux);flex:none;white-space:nowrap}
+.pestanas .mas:hover{border-color:var(--azul);color:var(--azul)}
+.aviso-guardado{max-width:1720px;margin:8px auto 0;padding:0 16px;font-size:var(--t-aux);color:var(--ambar)}
 
 /* ── tablero: presupuesto a la izquierda, APU a la derecha ── */
 .tablero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding:16px;max-width:1720px;margin:0 auto;align-items:start}
@@ -228,6 +256,8 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .marca .wm{font-size:16px}
   .grilla .corto{display:inline}.grilla .largo{display:none}
   .tablero{padding:12px;gap:12px}
+  .pestanas{padding:8px 12px 0}
+  .pestanas .pe{max-width:220px}
   .pres .ayuda{display:none}
   .pres input{min-width:0;flex-basis:100%}
   .grilla{table-layout:fixed}
@@ -284,7 +314,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   </a>
   <div class="archivos" id="chipsArchivos"></div>
   <div class="der">
-    <button class="btn" id="btnCambiar" hidden title="Cargar otros Excel"><span class="largo">Otros archivos</span><span aria-hidden="true">⇄</span></button>
+    <button class="btn" id="btnCambiar" hidden title="Agregar otro proyecto (sus dos Excel)"><span class="largo">Agregar proyecto</span><span class="corto" aria-hidden="true">＋</span></button>
     <button class="btn" onclick="abrirComo()"><span class="largo">¿Cómo se lee un APU?</span><span class="corto" aria-label="¿Cómo se lee un APU?">?</span></button>
     <a class="btn" href="manual.html" title="Manual de uso" style="text-decoration:none">Manual</a>
     <button class="btn" onclick="tema()" title="Tema claro / oscuro">◐</button>
@@ -307,6 +337,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
 
     <div class="suelta" id="suelta" hidden>
       <p class="hola" id="hola"></p>
+      <div class="guardados" id="guardados" hidden></div>
       <div class="caja" data-tipo="presupuesto" tabindex="0">
         <span class="nom">Presupuesto</span>
         <span class="esp">Excel «Presupuesto» exportado de Power Cost o VidBIM Costos</span>
@@ -315,6 +346,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
         <span class="nom">APU</span>
         <span class="esp">Excel «Análisis de Costos Unitarios» del mismo presupuesto</span>
       </div>
+      <label class="recordar"><input type="checkbox" id="chkRecordar" checked> Recordar este proyecto en este navegador (se guarda solo en esta computadora; lo puede quitar cuando quiera)</label>
       <button class="btn principal" id="btnAbrir" disabled>Abrir</button>
       <div class="cambiar">Suelte los dos archivos aquí o haga clic en cada caja · <button type="button" id="btnSalir">otro correo</button></div>
       <input type="file" id="archivo" accept=".xlsx,.xls" multiple hidden>
@@ -323,6 +355,10 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
     <p class="privado"><a href="manual.html" style="color:var(--azul)">¿Primera vez? Lea el manual (6 pasos)</a></p>
   </div>
 </main>
+
+<!-- ─────── Pestañas de proyectos ─────── -->
+<nav class="pestanas" id="pestanas" aria-label="Proyectos abiertos" hidden></nav>
+<div class="aviso-guardado" id="avisoGuardado" hidden></div>
 
 <!-- ─────── Tablero ─────── -->
 <main class="tablero" id="tablero" hidden>
@@ -422,7 +458,7 @@ async function comprobar(correo) {
 }
 function mostrarCarga(nombre) {
   $('#formCorreo').hidden = true; $('#suelta').hidden = false;
-  $('#hola').textContent = (nombre ? `Hola, ${nombre}. ` : '') + 'Ahora cargue los dos Excel del presupuesto.';
+  $('#hola').textContent = (nombre ? `Hola, ${nombre}. ` : '') + 'Cargue los dos Excel de un presupuesto.';
 }
 $('#formCorreo').addEventListener('submit', async e => {
   e.preventDefault();
@@ -432,16 +468,23 @@ $('#formCorreo').addEventListener('submit', async e => {
   $('#btnEntrar').disabled = true; $('#btnEntrar').textContent = 'Comprobando…';
   try {
     const r = await comprobar(correo);
-    if (r.ok) { guardar('visor.correo', correo); guardar('visor.nombre', r.nombre || ''); mostrarCarga(r.nombre); }
+    if (r.ok) { guardar('visor.correo', correo); guardar('visor.nombre', r.nombre || ''); mostrarCarga(r.nombre); alEntrar(); }
     else err.textContent = r.motivo === 'sin_acceso' ? 'Este correo no tiene acceso. Pídaselo a David.' : 'No se pudo comprobar el correo (' + (r.motivo || 'error') + ').';
   } catch (x) { err.textContent = 'No se pudo comprobar el correo. Revise su conexión e intente de nuevo.'; }
   $('#btnEntrar').disabled = false; $('#btnEntrar').textContent = 'Entrar';
 });
 $('#btnSalir').addEventListener('click', () => { guardar('visor.correo', ''); $('#suelta').hidden = true; $('#formCorreo').hidden = false; $('#correo').focus(); });
 { const c = leer('visor.correo'); if (c) { $('#correo').value = c; mostrarCarga(leer('visor.nombre')); } }
+// Los proyectos guardados se muestran una vez que hay correo; el último abierto se abre solo.
+async function alEntrar() {
+  await cargarGuardados();
+  pintarGuardados();
+  const ult = leer('visor.activo');
+  if (ult && proyectos.some(p => p.id === ult)) cambiarA(ult);
+}
 
 // ─────────── carga de los Excel ───────────
-const cargados = { presupuesto: null, apu: null };   // { nombre, wb, leido }
+let cargados = { presupuesto: null, apu: null };   // { nombre, leido } del proyecto que se está cargando
 function cargando(si, texto) { $('#cargando').hidden = !si; if (texto) $('#cargandoTexto').textContent = texto; }
 async function recibir(archivos) {
   for (const a of archivos) {
@@ -490,10 +533,131 @@ document.addEventListener('drop', e => {
   const fs = [...(e.dataTransfer?.files || [])].filter(f => /\.xlsx?$/i.test(f.name));
   if (fs.length) recibir(fs);
 });
-$('#btnAbrir').addEventListener('click', () => { cargando(true, 'Armando el presupuesto…'); setTimeout(() => { abrirTablero(); cargando(false); }, 30); });
-$('#btnCambiar').addEventListener('click', () => {
-  $('#tablero').hidden = true; $('#pieTablero').hidden = true; $('#portada').hidden = false; $('#btnCambiar').hidden = true; $('#chipsArchivos').innerHTML = '';
+$('#btnAbrir').addEventListener('click', async () => {
+  const e = { ...cargados.apu.leido.encabezado, ...cargados.presupuesto.leido.encabezado };
+  const pr = {
+    id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    nombre: e.Proyecto || cargados.presupuesto.nombre, sub: e['Sub Presupuesto'] || '', costoA: e['Costo a'] || '',
+    archivos: { presupuesto: cargados.presupuesto.nombre, apu: cargados.apu.nombre },
+    pre: cargados.presupuesto.leido, apu: cargados.apu.leido, fecha: Date.now(),
+    partidas: cargados.presupuesto.leido.filas.filter(f => f.esPartida).length,
+  };
+  // El mismo proyecto (mismo nombre y subpresupuesto) se reemplaza en vez de repetirse.
+  const igual = proyectos.find(x => x.nombre === pr.nombre && x.sub === pr.sub);
+  if (igual) { pr.id = igual.id; proyectos[proyectos.indexOf(igual)] = pr; armados.delete(pr.id); } else proyectos.push(pr);
+  pr.recordar = $('#chkRecordar').checked;
+  cargados = { presupuesto: null, apu: null }; pintarCajas();
+  if (pr.recordar) await guardarProyecto(pr); else await Almacen.borrar(pr.id).catch(() => {});
+  cambiarA(pr.id);
 });
+$('#btnCambiar').addEventListener('click', () => mostrarPortada());
+function mostrarPortada() {
+  if (activo) guardarEstado();
+  $('#tablero').hidden = true; $('#pieTablero').hidden = true; $('#pestanas').hidden = true; $('#avisoGuardado').hidden = true;
+  $('#portada').hidden = false; $('#btnCambiar').hidden = true; $('#chipsArchivos').innerHTML = '';
+  pintarGuardados();
+}
+{ const r = leer('visor.recordar'); if (r === 'no') $('#chkRecordar').checked = false; }
+$('#chkRecordar').addEventListener('change', e => guardar('visor.recordar', e.target.checked ? 'si' : 'no'));
+
+// ─────────── proyectos: varios abiertos y guardados en este navegador (IndexedDB) ───────────
+// Se guarda lo leído de los Excel (no los archivos), solo en esta computadora. Si el navegador no deja
+// guardar (modo privado, sin espacio), el proyecto queda abierto mientras no se cierre la página.
+const Almacen = (() => {
+  let db = null;
+  function abrirDb() {
+    if (db) return Promise.resolve(db);
+    return new Promise((ok, mal) => {
+      if (!window.indexedDB) return mal(new Error('sin IndexedDB'));
+      const r = indexedDB.open('visor-apu', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('proyectos', { keyPath: 'id' });
+      r.onsuccess = () => { db = r.result; ok(db); };
+      r.onerror = () => mal(r.error);
+    });
+  }
+  function tx(modo, fn) {
+    return abrirDb().then(d => new Promise((ok, mal) => {
+      const t = d.transaction('proyectos', modo), s = t.objectStore('proyectos');
+      const r = fn(s);
+      t.oncomplete = () => ok(r && r.result); t.onerror = () => mal(t.error); t.onabort = () => mal(t.error);
+    }));
+  }
+  return {
+    todos: () => tx('readonly', s => s.getAll()),
+    poner: p => tx('readwrite', s => s.put(p)),
+    borrar: id => tx('readwrite', s => s.delete(id)),
+  };
+})();
+let proyectos = [];          // { id, nombre, sub, archivos, pre, apu, fecha, partidas, recordar }
+const armados = new Map();   // id → datos armados (D), para cambiar de pestaña sin rehacerlo
+const estados = new Map();   // id → { item, buscar }
+let activo = null;
+
+async function guardarProyecto(p) {
+  const { recordar, ...limpio } = p;
+  try { await Almacen.poner(limpio); $('#avisoGuardado').hidden = true; }
+  catch (e) {
+    p.recordar = false;
+    $('#avisoGuardado').textContent = `No se pudo guardar «${p.nombre}» en este navegador (modo privado o sin espacio). Queda abierto mientras no cierre la página.`;
+    $('#avisoGuardado').hidden = false;
+  }
+}
+async function cargarGuardados() {
+  try { const ps = await Almacen.todos(); ps.sort((a, b) => a.fecha - b.fecha); ps.forEach(p => { p.recordar = true; if (!proyectos.some(x => x.id === p.id)) proyectos.push(p); }); }
+  catch (e) {}
+}
+function etiqueta(p) { return titleCase(p.nombre || ''); }
+function detalle(p) { return [p.sub, `${(p.partidas || 0).toLocaleString('es-PE')} partidas`].filter(Boolean).join(' · '); }
+function pintarGuardados() {
+  const g = $('#guardados');
+  if (!proyectos.length) { g.hidden = true; g.innerHTML = ''; return; }
+  g.hidden = false;
+  g.innerHTML = `<h2>Sus proyectos (${proyectos.length})</h2>` + proyectos.map(p =>
+    `<div class="pr"><button class="abrir" data-id="${p.id}" title="Abrir"><b>${esc(etiqueta(p))}</b><span>${esc(detalle(p))}${p.recordar ? '' : ' · solo por ahora'}</span></button>` +
+    `<button class="quitar" data-quitar="${p.id}" title="Quitar de este navegador">Quitar</button></div>`).join('') +
+    (proyectos.some(p => p.recordar) ? `<button class="borrar" id="btnBorrarTodo">Borrar todos los proyectos de este navegador</button>` : '') +
+    `<p class="hola" style="margin:8px 0 0">O agregue otro proyecto con sus dos Excel:</p>`;
+  g.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => cambiarA(b.dataset.id)));
+  g.querySelectorAll('[data-quitar]').forEach(b => b.addEventListener('click', () => quitar(b.dataset.quitar)));
+  $('#btnBorrarTodo')?.addEventListener('click', async () => {
+    if (!confirm('¿Borrar todos los proyectos guardados en este navegador? Tendrá que volver a cargar sus Excel.')) return;
+    for (const p of proyectos) await Almacen.borrar(p.id).catch(() => {});
+    proyectos = []; armados.clear(); estados.clear(); activo = null; guardar('visor.activo', ''); pintarGuardados();
+  });
+}
+async function quitar(id) {
+  const p = proyectos.find(x => x.id === id); if (!p) return;
+  if (!confirm(`¿Quitar «${etiqueta(p)}»${p.sub ? ' · ' + p.sub : ''} de este navegador? Para verlo otra vez tendrá que cargar sus Excel.`)) return;
+  await Almacen.borrar(id).catch(() => {});
+  proyectos = proyectos.filter(x => x !== p); armados.delete(id); estados.delete(id); try { localStorage.removeItem('visor.pos.' + id); } catch (e) {}
+  if (activo === id) { activo = null; guardar('visor.activo', ''); if (proyectos.length) cambiarA(proyectos[proyectos.length - 1].id); else mostrarPortada(); }
+  else { pintarPestanas(); pintarGuardados(); }
+}
+function pintarPestanas() {
+  const n = $('#pestanas');
+  n.innerHTML = proyectos.map(p => `<div class="pe${p.id === activo ? ' activa' : ''}" title="${esc(etiqueta(p) + (p.sub ? ' · ' + p.sub : ''))}">` +
+    `<button class="nom" data-id="${p.id}"><b>${esc(etiqueta(p))}</b><small>${esc(detalle(p))}</small></button>` +
+    `<button class="x" data-quitar="${p.id}" aria-label="Quitar ${esc(etiqueta(p))}" title="Quitar de este navegador">✕</button></div>`).join('') +
+    `<button class="mas" id="btnMas" title="Agregar otro proyecto">＋ Agregar proyecto</button>`;
+  n.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => cambiarA(b.dataset.id)));
+  n.querySelectorAll('[data-quitar]').forEach(b => b.addEventListener('click', () => quitar(b.dataset.quitar)));
+  $('#btnMas').addEventListener('click', () => mostrarPortada());
+  n.querySelector('.activa')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+function guardarEstado() {
+  if (!activo || !D) return;
+  estados.set(activo, { item: sel >= 0 ? D.filas[sel]?.item : null, buscar: $('#buscar').value });
+}
+function cambiarA(id) {
+  const p = proyectos.find(x => x.id === id); if (!p) return;
+  if (activo && activo !== id) guardarEstado();
+  cargando(true, `Abriendo ${etiqueta(p)}…`);
+  setTimeout(() => {
+    activo = id; guardar('visor.activo', id);
+    abrirTablero(p);
+    cargando(false);
+  }, 30);
+}
 
 // ─────────── tablero ───────────
 let D = null;            // datos armados
@@ -505,8 +669,11 @@ const MENORES = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'en', 
 function titleCase(s) { return s.toLowerCase().replace(/[a-záéíóúñü][^\s()–-]*/g, (w, i, todo) => i > 0 && i + w.length < todo.trimEnd().length && MENORES.has(w) ? w : w[0].toUpperCase() + w.slice(1)); }
 function nombreCorto(s) { return s.replace(/^CAMPAMENTO\s+/i, ''); }
 
-function abrirTablero() {
-  D = Lector.armar(cargados.presupuesto.leido, cargados.apu.leido);
+function abrirTablero(p) {
+  // Se arma sobre una copia: lo guardado queda tal como se leyó del Excel.
+  if (!armados.has(p.id)) armados.set(p.id, Lector.armar(structuredClone(p.pre), structuredClone(p.apu)));
+  D = armados.get(p.id);
+  sel = -1; filtro = null;
   const F = D.filas;
   // Totales de título (los del Excel; si faltan, se suman).
   const idx = {}; F.forEach((f, i) => idx[f.item] = i);
@@ -538,12 +705,15 @@ function abrirTablero() {
   const e = D.encabezado;
   $('#pieInfo').textContent = [titleCase(e.Proyecto || ''), (e['Costo a'] || '').toLowerCase(), `${F.filter(f => f.esPartida).length.toLocaleString('es-PE')} partidas`, `${nIns.toLocaleString('es-PE')} insumos`].filter(Boolean).join(' · ');
   $('#pieCd').innerHTML = `Costo directo <b>S/ ${f2(D.cd)}</b>`;
-  $('#chipsArchivos').innerHTML = `<span class="chip" title="${esc(cargados.presupuesto.nombre)}">Presupuesto · ${esc(cargados.presupuesto.nombre)}</span><span class="chip">APU · ${D.apus.length.toLocaleString('es-PE')} partidas</span>`;
-  $('#portada').hidden = true; $('#tablero').hidden = false; $('#pieTablero').hidden = false; $('#btnCambiar').hidden = false;
+  $('#chipsArchivos').innerHTML = `<span class="chip" title="${esc(p.archivos.presupuesto)}">Presupuesto · ${esc(p.archivos.presupuesto)}</span><span class="chip">APU · ${D.apus.length.toLocaleString('es-PE')} partidas</span>`;
+  $('#portada').hidden = true; $('#tablero').hidden = false; $('#pieTablero').hidden = false; $('#btnCambiar').hidden = false; $('#pestanas').hidden = false;
+  pintarPestanas();
+  // Donde se quedó en este proyecto (o la primera partida).
+  const est = estados.get(p.id) || { item: leer('visor.pos.' + p.id) };
   $('#buscar').value = '';
-  // Primera partida abierta y elegida.
-  const primera = F.findIndex(f => f.esPartida);
-  if (primera >= 0) irA(primera, false); else refrescar();
+  const i = est.item != null && idx[est.item] != null ? idx[est.item] : F.findIndex(f => f.esPartida);
+  if (i >= 0) irA(i, false); else refrescar();
+  if (est.buscar) { $('#buscar').value = est.buscar; buscar(); filasDom[sel]?.scrollIntoView({ block: 'center' }); }
 }
 
 // ── plegado ──
@@ -605,6 +775,7 @@ function buscar() {
 function seleccionar(i, mostrarApu = true) {
   if (sel >= 0) filasDom[sel].classList.remove('sel');
   sel = i; filasDom[i].classList.add('sel');
+  if (activo) guardar('visor.pos.' + activo, D.filas[i].item);   // para volver a la misma partida otro día
   filasDom[i].scrollIntoView({ block: 'nearest' });
   if (mostrarApu) pintarApu(D.filas[i]);
 }
@@ -798,6 +969,8 @@ function otrosCampamentos(f) {
   return `<div class="otros"><h3>La misma partida en otros frentes de trabajo <small>· ${otras.length + 1} veces en el presupuesto, ` +
     (dist ? `${dist} con otro P.U.` : 'mismo P.U.') + `</small></h3><ul>${lista}</ul></div>`;
 }
+
+if (leer('visor.correo')) alEntrar();
 
 function dondeSeUsa(k, itemActual) {
   const ins = D.insumos[k]; if (!ins) return;
