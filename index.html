@@ -93,14 +93,18 @@ button{font:inherit;cursor:pointer}
 .aviso-guardado{max-width:1720px;margin:8px auto 0;padding:0 16px;font-size:var(--t-aux);color:var(--ambar)}
 
 /* ── tablero: presupuesto a la izquierda, APU a la derecha ── */
-.tablero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding:16px;max-width:1720px;margin:0 auto;align-items:start}
+.tablero{display:grid;grid-template-columns:minmax(360px,var(--izq,1.3fr)) 12px minmax(360px,1fr);gap:2px;padding:16px;max-width:1720px;margin:0 auto;align-items:start}
+.divisor{position:sticky;top:16px;height:calc(100vh - var(--sobre-pres, 56px) - 32px);cursor:col-resize;display:grid;place-items:center;border-radius:var(--radio);touch-action:none}
+.divisor::after{content:"";width:4px;height:48px;border-radius:999px;background:var(--linea-fuerte)}
+.divisor:hover::after,.divisor.arrastrando::after{background:var(--azul);height:96px}
+body.arrastrando{cursor:col-resize;user-select:none}
 .panel{background:var(--superficie);border:1px solid var(--linea);border-radius:var(--radio);min-width:0}
 
 /* ─ presupuesto (como la ventana de VidBIM Costos) ─ */
 .pres{position:sticky;top:16px;height:calc(100vh - var(--sobre-pres, 56px) - 32px);min-height:420px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}
 .pres .herr{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--linea);flex-wrap:wrap}
-.pres input{flex:1;min-width:180px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:6px 10px;background:var(--superficie);color:var(--tinta);font:inherit;font-size:var(--t-tabla)}
-.pres input:focus{outline:2px solid var(--azul);outline-offset:-1px}
+.pres input[type=search]{flex:1;min-width:180px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:6px 10px;background:var(--superficie);color:var(--tinta);font:inherit;font-size:var(--t-tabla)}
+.pres input[type=search]:focus{outline:2px solid var(--azul);outline-offset:-1px}
 .pres .herr .sep{width:1px;height:20px;background:var(--linea)}
 .niveles{display:inline-flex;align-items:center;border:1px solid var(--linea-fuerte);border-radius:var(--radio);overflow:hidden;font-size:var(--t-aux)}
 .niveles span{padding:0 8px;color:var(--gris)}
@@ -114,7 +118,9 @@ button{font:inherit;cursor:pointer}
 .cdfija .de{font-weight:600;color:var(--tinta)}
 .cdfija small{color:var(--gris);font-family:var(--f-datos)}
 .pres .scroll{overflow:auto;flex:1;min-height:0}
-table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
+table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla);table-layout:fixed}
+.grilla col.c-und{width:52px}.grilla col.c-met{width:88px}.grilla col.c-pre{width:92px}.grilla col.c-par{width:104px}.grilla col.c-tot{width:118px}
+.grilla td.it{overflow:hidden;text-overflow:ellipsis}
 .grilla thead{position:sticky;top:0;z-index:2}
 .grilla th{background:var(--superficie-2);font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;z-index:1}
 .grilla th.num{text-align:right}
@@ -129,14 +135,21 @@ table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
 .grilla tr.n1 td{background:var(--superficie-2)}
 .grilla tr.n1{--c:var(--nivel-1)}.grilla tr.n2{--c:var(--nivel-2)}.grilla tr.n3{--c:var(--nivel-3)}.grilla tr.n4{--c:var(--nivel-4)}
 .grilla tr.n5{--c:var(--nivel-5)}.grilla tr.n6{--c:var(--nivel-6)}.grilla tr.n7{--c:var(--nivel-7)}
-.grilla td.de{padding-left:calc(8px + var(--n,0)*14px)}
+.grilla td.de{padding-left:calc(8px + var(--ind,0px))}
 .grilla .pl{display:inline-block;width:14px;color:var(--gris);font-size:10px;text-align:center;margin-right:4px}
-.grilla tr.p td.de{padding-left:calc(8px + var(--n,0)*14px + 18px)}
+.grilla tr.p td.de{padding-left:calc(8px + var(--ind,0px) + 14px)}
+.grilla.completos td{white-space:normal;vertical-align:top;height:auto;padding-top:6px;padding-bottom:6px}
+.grilla.completos td.de{overflow:visible;text-overflow:clip;line-height:1.35}
+.grilla.completos td.num,.grilla.completos td.it,.grilla.completos td.un{white-space:nowrap}
+.grilla.compacta .oc{display:none}
+.interruptor{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-aux);color:var(--tinta-2);cursor:pointer;white-space:nowrap}
+.interruptor input{margin:0}
 .grilla tr.sel td{background:var(--azul-tinte)}
 .grilla tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--azul)}
 .grilla tr.oculta{display:none}
 .grilla tr.sinapu td.de{color:var(--rojo)}
 .grilla .corto{display:none}
+.grilla .solo-cel{display:none}
 .grilla mark{background:var(--ambar-tinte);color:inherit;padding:0}
 .pres .pie{border-top:1px solid var(--linea);padding:8px 12px;display:flex;justify-content:space-between;gap:12px;font-size:var(--t-aux);color:var(--gris);flex-wrap:wrap}
 .pres .pie b{color:var(--azul);font-family:var(--f-datos);font-weight:600;font-size:var(--t-tabla)}
@@ -266,7 +279,8 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
 
 /* ── ancho medio: apilado como la ventana de la app (presupuesto arriba, APU abajo) ── */
 @media (max-width:1100px){
-  .tablero{grid-template-columns:1fr}
+  .tablero{grid-template-columns:1fr;gap:16px}
+  .divisor{display:none}
   .pres{position:static;height:auto;max-height:none}
   .pres .scroll{height:46vh;flex:none}
 }
@@ -286,13 +300,18 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .pestanas .pe{max-width:220px}
   .pres .ayuda{display:none}
   .frente{max-width:100%;flex:1}
-  .pres input{min-width:0;flex-basis:100%}
+  .pres input[type=search]{min-width:0;flex-basis:100%}
   .grilla{table-layout:fixed}
   .grilla .oc{display:none}
-  .grilla col.c-it{width:74px}.grilla col.c-par{width:78px}.grilla col.c-tot{width:96px}
+  .grilla col.c-it,.grilla col.c-tot{display:none}.grilla td.it,.grilla td:last-child,.grilla th:first-child,.grilla th:last-child{display:none}
+  .grilla col.c-par{width:104px!important}
+  .grilla .solo-cel{display:inline}
+  .grilla td.de::before{content:attr(data-it);display:block;font-family:var(--f-datos);font-size:10px;font-weight:400;color:var(--gris)}
+  .grilla td{height:auto;padding-top:5px;padding-bottom:5px}
   .grilla th,.grilla td{padding-left:4px;padding-right:4px}
-  .grilla td.de{padding-left:calc(4px + var(--n,0)*8px)}
-  .grilla tr.p td.de{padding-left:calc(4px + var(--n,0)*8px + 12px)}
+  .grilla td.de{padding-left:calc(4px + var(--ind,0px) * .35)}
+  .grilla tr.p td.de{padding-left:calc(4px + var(--ind,0px) * .35 + 12px)}
+  .interruptor.solo-ancho{display:none}
   .grilla .pl{width:10px;margin-right:2px}
   .grilla td.it{font-size:10px;overflow:hidden;text-overflow:ellipsis}
   .grilla td.num{font-size:var(--t-aux)}
@@ -395,13 +414,15 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
       <span class="sep"></span>
       <div class="niveles" id="niveles" role="group" aria-label="Abrir hasta el nivel"></div>
       <select class="frente" id="frente" aria-label="Frente de trabajo"><option value="">Frente: todos</option></select>
+      <label class="interruptor" title="La descripción usa 2 o 3 renglones en vez de cortarse con «…»"><input type="checkbox" id="chkCompletos"> Nombres completos</label>
+      <label class="interruptor solo-ancho" title="Oculta Und., Metrado y Precio para dar más espacio a la descripción"><input type="checkbox" id="chkCompacta"> Compacta</label>
       <span class="ayuda">↑ ↓ mueven · Enter abre el APU · ← → pliegan · Shift+clic en ▸ abre todo lo de adentro</span>
     </div>
     <div class="cdfija" id="filaCd"></div>
     <div class="scroll" id="scrollPres">
       <table class="grilla" id="grilla">
-        <colgroup><col class="c-it"><col><col class="oc"><col class="oc"><col class="oc"><col class="c-par"><col class="c-tot"></colgroup>
-        <thead><tr><th>Ítem</th><th>Descripción</th><th class="oc" style="text-align:center">Und.</th><th class="num oc">Metrado</th><th class="num oc">Precio S/</th><th class="num">Parcial S/</th><th class="num"><span class="largo">Total título S/</span><span class="corto">Total S/</span></th></tr></thead>
+        <colgroup><col class="c-it" id="colItem"><col><col class="oc c-und"><col class="oc c-met"><col class="oc c-pre"><col class="c-par"><col class="c-tot"></colgroup>
+        <thead><tr><th>Ítem</th><th>Descripción</th><th class="oc" style="text-align:center">Und.</th><th class="num oc">Metrado</th><th class="num oc">Precio S/</th><th class="num">Parcial S/</th><th class="num">Total título S/</th></tr></thead>
         <tbody id="cuerpoPres"></tbody>
       </table>
       <div class="nada" id="nadaPres" hidden>Nada coincide con la búsqueda.</div>
@@ -409,6 +430,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
     <div class="pie"><span id="pieInfo"></span><span id="pieCd"></span></div>
   </section>
 
+  <div class="divisor" id="divisor" role="separator" aria-orientation="vertical" aria-label="Arrastre para cambiar el ancho del presupuesto" title="Arrastre para ensanchar el presupuesto o el APU · doble clic: ancho normal"></div>
   <section class="panel apu" id="apu" aria-live="polite">
     <div class="vacio">Elija una partida del presupuesto para ver su APU.</div>
   </section>
@@ -718,15 +740,29 @@ function abrirTablero(p) {
   const gemelas = {};
   F.filter(f => f.esPartida).forEach(f => { const k = f.descripcion.trim().toUpperCase() + '|' + (f.unidad || '').toUpperCase(); (gemelas[k] ||= []).push(f); f.gemelas = gemelas[k]; });
 
+  // Sangría: 14 px por nivel hasta el 3 y 6 px de ahí en adelante (el color del título ya dice el nivel).
+  const ind = n => (n <= 3 ? n * 14 : 42 + (n - 3) * 4) + 'px';
+  // Ancho del ítem según el más largo del proyecto.
+  const largo = Math.max(...F.map(f => f.item.length));
+  $('#colItem').style.width = Math.round(largo * 7.3 + 18) + 'px';   // 12 px de IBM Plex Mono ≈ 7.2 px por carácter
+  // Columnas de números: tan anchas como el número más largo del proyecto (13 px de IBM Plex Mono ≈ 7.8 px por cifra).
+  const anchoDe = (xs, min) => Math.max(min, Math.round(Math.max(...xs.map(x => f2(x).length)) * 7.8 + 18)) + 'px';
+  const ps = F.filter(f => f.esPartida), ts = F.filter(f => !f.esPartida);
+  const col = c => $('#grilla').querySelector('col.' + c);
+  col('c-und').style.width = Math.max(44, Math.max(...ps.map(f => (f.unidad || '').length)) * 7.2 + 18) + 'px';
+  col('c-met').style.width = anchoDe(ps.map(f => f.metrado || 0), 64);
+  col('c-pre').style.width = anchoDe(ps.map(f => f.precio || 0), 64);
+  col('c-par').style.width = anchoDe(ps.map(f => f.parcial || 0), 72);
+  col('c-tot').style.width = anchoDe(ts.map(f => f.total || 0), 80);
   let html = '';
   F.forEach((f, i) => {
     const n = f.nivel - 1;
     if (f.esPartida) {
-      html += `<tr class="p${f.apu ? '' : ' sinapu'}" data-i="${i}" style="--n:${n}"><td class="it">${esc(f.item)}</td><td class="de" title="${esc(f.descripcion)}">${esc(f.descripcion)}</td>` +
+      html += `<tr class="p${f.apu ? '' : ' sinapu'}" data-i="${i}" style="--ind:${ind(n)}"><td class="it" title="${esc(f.item)}">${esc(f.item)}</td><td class="de" data-it="${esc(f.item)}" title="${esc(f.descripcion)}">${esc(f.descripcion)}</td>` +
         `<td class="un oc">${esc(f.unidad)}</td><td class="num oc">${f2(f.metrado)}</td><td class="num oc">${f2(f.precio)}</td><td class="num">${f2(f.parcial)}</td><td></td></tr>`;
     } else {
-      html += `<tr class="t n${Math.min(f.nivel, 7)}" data-i="${i}" style="--n:${n}"><td class="it">${esc(f.item)}</td><td class="de" title="${esc(f.descripcion)}"><span class="pl">${f.tieneHijos ? '▾' : ''}</span>${esc(f.descripcion)}</td>` +
-        `<td class="oc"></td><td class="oc"></td><td class="oc"></td><td></td><td class="num tt">${f2(f.total)}</td></tr>`;
+      html += `<tr class="t n${Math.min(f.nivel, 7)}" data-i="${i}" style="--ind:${ind(n)}"><td class="it" title="${esc(f.item)}">${esc(f.item)}</td><td class="de" data-it="${esc(f.item)}" title="${esc(f.descripcion)}"><span class="pl">${f.tieneHijos ? '▾' : ''}</span>${esc(f.descripcion)}</td>` +
+        `<td class="oc"></td><td class="oc"></td><td class="oc"></td><td class="num tt"><span class="solo-cel">${f2(f.total)}</span></td><td class="num tt">${f2(f.total)}</td></tr>`;
     }
   });
   $('#cuerpoPres').innerHTML = html;
@@ -739,6 +775,12 @@ function abrirTablero(p) {
   $('#pieCd').innerHTML = `Costo directo <b>S/ ${f2(D.cd)}</b>`;
   let vista = {}; try { vista = JSON.parse(leer('visor.vista.' + p.id) || '{}'); } catch (x) {}
   nivelVista = vista.nivel ?? null; frente = vista.frente || '';
+  // Nombres completos: por defecto encendido si el proyecto tiene más de 6 niveles.
+  const niveles = Math.max(...F.map(f => f.nivel));
+  $('#chkCompletos').checked = vista.completos ?? niveles > 6;
+  $('#chkCompacta').checked = !!vista.compacta;
+  $('#grilla').classList.toggle('completos', $('#chkCompletos').checked);
+  $('#grilla').classList.toggle('compacta', $('#chkCompacta').checked);
   $('#chipsArchivos').innerHTML = `<span class="chip" title="${esc(p.archivos.presupuesto)}">Presupuesto · ${esc(p.archivos.presupuesto)}</span><span class="chip">APU · ${D.apus.length.toLocaleString('es-PE')} partidas</span>`;
   $('#portada').hidden = true; $('#tablero').hidden = false; $('#pieTablero').hidden = false; $('#btnCambiar').hidden = false; $('#pestanas').hidden = false;
   pintarPestanas();
@@ -827,7 +869,36 @@ $('#frente').addEventListener('change', e => {
   // Si la partida elegida quedó fuera del frente, se elige la primera de adentro.
   if (sel >= 0 && !enFrente(D.filas[sel].item)) { const k = D.filas.findIndex(f => f.esPartida && enFrente(f.item)); if (k >= 0) seleccionar(k); }
 });
-function guardarVista() { if (activo) guardar('visor.vista.' + activo, JSON.stringify({ nivel: nivelVista, frente })); }
+function guardarVista() { if (activo) guardar('visor.vista.' + activo, JSON.stringify({ nivel: nivelVista, frente, completos: $('#chkCompletos').checked, compacta: $('#chkCompacta').checked })); }
+$('#chkCompletos').addEventListener('change', e => { $('#grilla').classList.toggle('completos', e.target.checked); guardarVista(); if (sel >= 0) filasDom[sel].scrollIntoView({ block: 'nearest' }); });
+$('#chkCompacta').addEventListener('change', e => { $('#grilla').classList.toggle('compacta', e.target.checked); guardarVista(); });
+
+// ── divisor: arrastrar para repartir el ancho entre presupuesto y APU (se recuerda) ──
+(() => {
+  const div = $('#divisor'), tab = $('#tablero');
+  const poner = px => { if (px) tab.style.setProperty('--izq', px + 'px'); else tab.style.removeProperty('--izq'); };
+  { const g = +leer('visor.izq'); if (g > 0) poner(g); }
+  let x0 = 0, w0 = 0;
+  div.addEventListener('pointerdown', e => {
+    x0 = e.clientX; w0 = $('.pres').getBoundingClientRect().width;
+    div.setPointerCapture(e.pointerId); div.classList.add('arrastrando'); document.body.classList.add('arrastrando');
+  });
+  div.addEventListener('pointermove', e => {
+    if (!div.classList.contains('arrastrando')) return;
+    const total = tab.getBoundingClientRect().width - 32 - 14;
+    poner(Math.round(Math.max(360, Math.min(total - 360, w0 + e.clientX - x0))));
+  });
+  const soltar = () => { if (!div.classList.contains('arrastrando')) return; div.classList.remove('arrastrando'); document.body.classList.remove('arrastrando');
+    guardar('visor.izq', String(Math.round($('.pres').getBoundingClientRect().width))); };
+  div.addEventListener('pointerup', soltar); div.addEventListener('pointercancel', soltar);
+  div.addEventListener('dblclick', () => { poner(0); guardar('visor.izq', ''); });
+  div.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const w = $('.pres').getBoundingClientRect().width + (e.key === 'ArrowRight' ? 40 : -40);
+    poner(Math.max(360, w)); guardar('visor.izq', String(Math.round(w))); e.preventDefault();
+  });
+  div.tabIndex = 0;
+})();
 function pintarCd() {
   const t = frente ? D.filas[porItemFila[frente]] : null;
   $('#filaCd').innerHTML = t
@@ -888,7 +959,7 @@ $('#cuerpoPres').addEventListener('click', e => {
 $('#cuerpoPres').addEventListener('dblclick', e => { const tr = e.target.closest('tr'); if (tr) plegar(+tr.dataset.i, !plegados.has(+tr.dataset.i)); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { cerrar(); return; }
-  if ($('#tablero').hidden || e.target.tagName === 'INPUT' || sel < 0) return;
+  if ($('#tablero').hidden || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.id === 'divisor' || sel < 0) return;
   if ($('.cajon.abierto')) return;
   const vis = filasDom.map((tr, i) => i).filter(i => !filasDom[i].classList.contains('oculta'));
   const k = vis.indexOf(sel);
