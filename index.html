@@ -375,7 +375,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
 'use strict';
 // ── Acceso: la hoja de Google «Visor APU» con su Apps Script (como el taller de Flores Amarillas).
 // Vacío = sin comprobar (solo para probar en local).
-const SERVIDOR = '';
+const SERVIDOR = 'https://script.google.com/macros/s/AKfycbzJqXi5ViYzA8wluW0Yuj0sdfzYgCg60Juk39dDR8V5SxVFKen9ulkVKPOIs-bX24BWpg/exec';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
