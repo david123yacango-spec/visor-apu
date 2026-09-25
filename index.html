@@ -169,6 +169,10 @@ table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla);table-
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chips span{font-family:var(--f-datos);font-size:var(--t-aux);background:var(--superficie-2);border:1px solid var(--linea);border-radius:999px;padding:3px 10px;color:var(--tinta-2)}
 .chips span b{color:var(--tinta);font-weight:600}
+/* Con la tabla compacta (y en el celular) Und. y Metrado no se ven en el presupuesto: se resaltan aquí, primero. */
+body.compacta .chips .ch-met{order:-2}body.compacta .chips .ch-und{order:-1}
+body.compacta .chips .ch-met,body.compacta .chips .ch-und{background:var(--azul-tinte);border-color:var(--azul);color:var(--azul)}
+body.compacta .chips .ch-met b,body.compacta .chips .ch-und b{color:var(--azul);font-size:var(--t-cuerpo)}
 .pu{text-align:right}
 .pu .lbl{font-size:var(--t-aux);color:var(--gris);letter-spacing:.08em;text-transform:uppercase;font-family:var(--f-datos)}
 .pu .val{font-family:var(--f-marca);font-weight:800;font-size:var(--t-pu);letter-spacing:-.03em;color:var(--azul);line-height:1.1;white-space:nowrap}
@@ -312,6 +316,9 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .grilla td.de{padding-left:calc(4px + var(--ind,0px) * .35)}
   .grilla tr.p td.de{padding-left:calc(4px + var(--ind,0px) * .35 + 12px)}
   .interruptor.solo-ancho{display:none}
+  .chips .ch-met{order:-2}.chips .ch-und{order:-1}
+  .chips .ch-met,.chips .ch-und{background:var(--azul-tinte);border-color:var(--azul);color:var(--azul)}
+  .chips .ch-met b,.chips .ch-und b{color:var(--azul);font-size:var(--t-cuerpo)}
   .grilla .pl{width:10px;margin-right:2px}
   .grilla td.it{font-size:10px;overflow:hidden;text-overflow:ellipsis}
   .grilla td.num{font-size:var(--t-aux)}
@@ -781,6 +788,7 @@ function abrirTablero(p) {
   $('#chkCompacta').checked = !!vista.compacta;
   $('#grilla').classList.toggle('completos', $('#chkCompletos').checked);
   $('#grilla').classList.toggle('compacta', $('#chkCompacta').checked);
+  document.body.classList.toggle('compacta', $('#chkCompacta').checked);
   $('#chipsArchivos').innerHTML = `<span class="chip" title="${esc(p.archivos.presupuesto)}">Presupuesto · ${esc(p.archivos.presupuesto)}</span><span class="chip">APU · ${D.apus.length.toLocaleString('es-PE')} partidas</span>`;
   $('#portada').hidden = true; $('#tablero').hidden = false; $('#pieTablero').hidden = false; $('#btnCambiar').hidden = false; $('#pestanas').hidden = false;
   pintarPestanas();
@@ -871,7 +879,7 @@ $('#frente').addEventListener('change', e => {
 });
 function guardarVista() { if (activo) guardar('visor.vista.' + activo, JSON.stringify({ nivel: nivelVista, frente, completos: $('#chkCompletos').checked, compacta: $('#chkCompacta').checked })); }
 $('#chkCompletos').addEventListener('change', e => { $('#grilla').classList.toggle('completos', e.target.checked); guardarVista(); if (sel >= 0) filasDom[sel].scrollIntoView({ block: 'nearest' }); });
-$('#chkCompacta').addEventListener('change', e => { $('#grilla').classList.toggle('compacta', e.target.checked); guardarVista(); });
+$('#chkCompacta').addEventListener('change', e => { $('#grilla').classList.toggle('compacta', e.target.checked); document.body.classList.toggle('compacta', e.target.checked); guardarVista(); });
 
 // ── divisor: arrastrar para repartir el ancho entre presupuesto y APU (se recuerda) ──
 (() => {
@@ -1045,10 +1053,10 @@ function pintarApu(f) {
   const nMo = a.lineas.filter(l => l.categoria === 'mo').length;
   let h = miga(f);
   h += `<div class="cabpartida"><div><div class="it">Partida ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1><div class="chips">` +
-    `<span>Unidad <b>${esc(f.unidad || a.unidad)}</b></span>` +
+    `<span class="ch-und">Unidad <b>${esc(f.unidad || a.unidad)}</b></span>` +
     (a.rendimiento ? `<span>Rendimiento <b>${f4(a.rendimiento)} ${esc(a.unidad)}/día</b></span>` : `<span>Rendimiento <b>—</b></span>`) +
     (cuadrilla ? `<span>Cuadrilla <b>${cuadrilla}</b></span>` : '') +
-    (f.metrado != null ? `<span>Metrado <b>${f2(f.metrado)} ${esc(f.unidad)}</b></span>` : '') +
+    (f.metrado != null ? `<span class="ch-met">Metrado <b>${f2(f.metrado)} ${esc(f.unidad)}</b></span>` : '') +
     `</div></div><div class="pu"><div class="lbl">Precio unitario</div><div class="val"><small>S/</small>${f2(cu)}</div><div class="por">por ${esc(f.unidad || a.unidad)} · suma de ${cats.length === 5 ? 'las cinco categorías' : 'las cuatro categorías'}</div></div></div>`;
   if (a.diferencias.length) h += `<div class="revisar">Al rehacer las cuentas no cierra: ${esc(a.diferencias.slice(0, 4).join(' · '))}. Revise este APU en el programa.</div>`;
   if (f.precio != null && Math.abs(f.precio - cu) > 0.005) h += `<div class="revisar">El presupuesto usa P.U. S/ ${f2(f.precio)} y el APU da S/ ${f2(cu)}.</div>`;
