@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manual · Visor de APU</title>
+<meta name="description" content="Cómo usar el Visor de APU de VidBIM en seis pasos.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta)}
+.datos{font-family:var(--f-datos);font-variant-numeric:tabular-nums}
+.cab{height:var(--cabecera-alto);background:var(--cabecera-fondo);color:var(--cabecera-texto);display:flex;align-items:center;gap:16px;padding:0 16px}
+.marca{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.marca svg{width:28px;height:28px;flex:none}
+.marca .wm{font-family:var(--f-marca);font-size:var(--t-marca);letter-spacing:-.045em;line-height:1;white-space:nowrap}
+.marca .wm .a{font-weight:500}.marca .wm .b{font-weight:800}.marca .wm .c{font-weight:500;color:var(--cabecera-azul);margin-left:.3em}
+.cab .der{margin-left:auto}
+.btn{display:inline-block;border:1px solid var(--cabecera-linea);color:var(--cabecera-texto);border-radius:var(--radio);padding:6px 12px;text-decoration:none;font-size:var(--t-cuerpo)}
+.btn:hover{background:var(--cabecera-hover)}
+main{max-width:880px;margin:0 auto;padding:32px 16px 48px}
+h1{font-family:var(--f-marca);font-weight:800;font-size:32px;letter-spacing:-.04em;line-height:1.1;margin:0 0 8px}
+.intro{color:var(--tinta-2);font-size:16px;margin:0 0 16px;max-width:680px}
+.nota{background:var(--superficie);border:1px solid var(--linea);border-left:3px solid var(--azul);border-radius:var(--radio);padding:12px 16px;font-size:var(--t-cuerpo);color:var(--tinta-2);margin:0 0 24px}
+.indice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 32px;padding:0;list-style:none}
+.indice a{display:inline-block;font-size:var(--t-aux);border:1px solid var(--linea-fuerte);background:var(--superficie);color:var(--tinta-2);border-radius:999px;padding:4px 12px;text-decoration:none}
+.indice a:hover{border-color:var(--azul);color:var(--azul)}
+section.paso{background:var(--superficie);border:1px solid var(--linea);border-radius:var(--radio);padding:24px;margin:0 0 16px;scroll-margin-top:16px}
+.paso header{display:flex;gap:12px;align-items:baseline;margin:0 0 8px}
+.paso .n{font-family:var(--f-datos);font-weight:600;color:#fff;background:var(--azul);border-radius:999px;min-width:28px;height:28px;display:inline-grid;place-items:center;font-size:var(--t-tabla);flex:none}
+.paso h2{font-family:var(--f-marca);font-weight:600;font-size:20px;letter-spacing:-.02em;margin:0}
+.paso p,.paso li{color:var(--tinta-2);line-height:1.6}
+.paso ul,.paso ol{padding-left:20px;margin:8px 0}
+.paso b{color:var(--tinta)}
+.paso kbd{font-family:var(--f-datos);font-size:var(--t-aux);border:1px solid var(--linea-fuerte);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--superficie-2);color:var(--tinta)}
+.paso code{font-family:var(--f-datos);font-size:var(--t-aux);background:var(--superficie-2);border-radius:4px;padding:1px 5px;color:var(--tinta)}
+figure{margin:16px 0 0}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--linea);border-radius:var(--radio);background:var(--superficie)}
+figure.chica img{max-width:420px;width:100%}
+figcaption{font-size:var(--t-aux);color:var(--gris);margin-top:6px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.cats{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0;font-size:var(--t-tabla)}
+.cats span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--c);margin-right:6px}
+.mo{--c:var(--mo)}.mat{--c:var(--mat)}.eq{--c:var(--eq)}.sc{--c:var(--sc)}
+.cta{display:inline-block;background:var(--azul);color:#fff;text-decoration:none;font-weight:600;border-radius:var(--radio);padding:10px 18px;margin-top:8px}
+.cta:hover{background:var(--azul-hover)}
+footer{max-width:880px;margin:0 auto;padding:0 16px 32px;font-size:var(--t-aux);color:var(--gris)}
+@media (max-width:700px){
+  h1{font-size:26px}
+  section.paso{padding:16px}
+  .dos{grid-template-columns:1fr}
+  .cab .der .largo{display:none}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vidbim-s" viewBox="0 0 100 100">
+    <path d="M4,15.5 L50.5,61.5 L50.5,84.5 L4,38.5 Z" fill="var(--b,#1F45DE)"/>
+    <path d="M96,15.5 L49.5,61.5 L49.5,84.5 L96,38.5 Z" fill="currentColor"/>
+  </symbol>
+</svg>
+<header class="cab">
+  <a class="marca" href="./" style="--b:#6285FF">
+    <svg><use href="#vidbim-s"/></svg>
+    <span class="wm"><span class="a">Vid</span><span class="b">BIM</span><span class="c">Visor de APU</span></span>
+  </a>
+  <div class="der"><a class="btn" href="./">Abrir el visor <span class="largo">→</span></a></div>
+</header>
+
+<main>
+  <h1>Manual del Visor de APU</h1>
+  <p class="intro">Revise un presupuesto partida por partida y vea de dónde sale cada precio unitario: cuadrilla, rendimiento, cantidades y redondeos. En seis pasos.</p>
+  <div class="nota"><b>Qué necesita:</b> un correo con acceso (lo da David) y los <b>dos Excel</b> exportados de Power Cost o de VidBIM Costos: el <b>Presupuesto</b> y el <b>Análisis de Costos Unitarios</b> del mismo proyecto. Los Excel se leen en su navegador: <b>no se suben a ningún servidor</b>.</div>
+
+  <ul class="indice">
+    <li><a href="#entrar">1 · Entrar</a></li>
+    <li><a href="#cargar">2 · Cargar los Excel</a></li>
+    <li><a href="#presupuesto">3 · Moverse en el presupuesto</a></li>
+    <li><a href="#apu">4 · Leer el APU</a></li>
+    <li><a href="#calculo">5 · Ver el cálculo</a></li>
+    <li><a href="#comparar">6 · Comparar e investigar</a></li>
+  </ul>
+
+  <section class="paso" id="entrar">
+    <header><span class="n">1</span><h2>Entrar con su correo</h2></header>
+    <p>Abra <a href="./">el visor</a>, escriba su correo y pulse <b>Entrar</b>. Si sale «Este correo no tiene acceso», pídaselo a David. El navegador recuerda su correo: la próxima vez va directo a cargar los archivos.</p>
+    <figure class="chica"><img src="manual/1-entrar.png" alt="Portada del visor con el campo de correo y el botón Entrar" loading="lazy"></figure>
+  </section>
+
+  <section class="paso" id="cargar">
+    <header><span class="n">2</span><h2>Cargar los dos Excel</h2></header>
+    <p>Arrastre los dos archivos a la tarjeta, o haga clic en una caja para elegirlos. No importa el orden: el visor reconoce cuál es el presupuesto y cuál el de APU. Cuando las dos cajas se ponen en verde, pulse <b>Abrir</b>.</p>
+    <ul>
+      <li>Son los Excel de <b>exportación</b> (hoja SP1), tal como salen de Power Cost o de VidBIM Costos.</li>
+      <li>Si una caja dice que el archivo no se reconoce, revise que no sea otro reporte (por ejemplo, la lista de insumos).</li>
+      <li>Para cambiar de presupuesto después, use <b>Otros archivos ⇄</b> en la cabecera.</li>
+    </ul>
+    <figure class="chica"><img src="manual/2-cargar.png" alt="Las dos cajas de Presupuesto y APU en verde con el botón Abrir" loading="lazy"></figure>
+  </section>
+
+  <section class="paso" id="presupuesto">
+    <header><span class="n">3</span><h2>Moverse en el presupuesto</h2></header>
+    <p>A la izquierda está el presupuesto, como en la ventana de VidBIM Costos: títulos en el color de su nivel, partidas con metrado, precio y parcial, y el <b>costo directo</b> abajo. Al elegir una partida, su APU aparece a la derecha.</p>
+    <ul>
+      <li><b>Buscar:</b> escriba parte del nombre o del ítem (<code>pintura latex</code>, <code>01.03</code>); filtra al instante.</li>
+      <li><b>Plegar:</b> clic en el triángulo de un título, o <b>Expandir todo</b> / <b>Contraer</b>.</li>
+      <li><b>Teclado:</b> <kbd>↑</kbd> <kbd>↓</kbd> pasan de fila, <kbd>←</kbd> <kbd>→</kbd> pliegan o suben al título, <kbd>Enter</kbd> lleva al APU.</li>
+    </ul>
+    <figure><img src="manual/3-pantalla.png" alt="Pantalla completa: presupuesto a la izquierda y APU a la derecha" loading="lazy"><figcaption>En el celular el presupuesto queda arriba y el APU abajo.</figcaption></figure>
+    <figure class="chica"><img src="manual/4-buscar.png" alt="Búsqueda de pintura latex" loading="lazy"><figcaption>Buscar «pintura latex» deja solo esas partidas, con sus títulos.</figcaption></figure>
+  </section>
+
+  <section class="paso" id="apu">
+    <header><span class="n">4</span><h2>Leer el APU</h2></header>
+    <p>Arriba va la partida con su <b>unidad</b>, <b>rendimiento</b> (lo que hace la cuadrilla en un día), <b>cuadrilla</b> y <b>metrado</b>. A la derecha, en azul, el <b>precio unitario</b>. La barra de colores dice de qué está hecho ese precio:</p>
+    <div class="cats"><span class="mo">Mano de obra</span><span class="mat">Materiales</span><span class="eq">Equipo</span><span class="sc">Subcontratos</span></div>
+    <p>Debajo, una tabla por categoría (siempre en ese orden) con código, insumo, unidad, cuadrilla, cantidad, precio y parcial. Cada categoría suma sus parciales y la suma de las cuatro es el P.U. El botón <b>¿Cómo se lee un APU?</b> explica cada columna.</p>
+    <figure><img src="manual/5-cabecera-apu.png" alt="Cabecera del APU con chips, precio unitario y barra de peso" loading="lazy"></figure>
+  </section>
+
+  <section class="paso" id="calculo">
+    <header><span class="n">5</span><h2>Ver el cálculo de cada línea</h2></header>
+    <p>El cálculo va apagado para que la tabla quede limpia. Hay dos formas de verlo:</p>
+    <ol>
+      <li><b>Ver cálculo</b> en el encabezado de una categoría: muestra la cuenta de todas sus líneas. El visor lo recuerda para las siguientes partidas.</li>
+      <li><b>Clic en una línea:</b> solo la cuenta de esa línea. Otro clic la esconde.</li>
+    </ol>
+    <p>Cómo se lee una cuenta de mano de obra:</p>
+    <p><code>0.1 cuad × 8 h ÷ 45.0000 m²/día = 0.01777778 → 0.0178 hh R4</code><br><code>0.0178 hh × S/ 25.40 = 0.45212 → S/ 0.45 R2</code></p>
+    <ul>
+      <li><b>R4</b>: la cantidad se redondea a 4 decimales. <b>R2</b>: el parcial, a 2 (soles). Solo aparecen cuando el redondeo cambia el número.</li>
+      <li>Las herramientas manuales son un <b>%MO</b>: <code>3 % × S/ 5.27 (mano de obra) = 0.1581 → S/ 0.16</code>.</li>
+      <li>Si una cuenta no cierra con lo que trae el Excel, sale un aviso en rojo.</li>
+    </ul>
+    <figure><img src="manual/6-ver-calculo.png" alt="Mano de obra con Ver cálculo encendido" loading="lazy"></figure>
+  </section>
+
+  <section class="paso" id="comparar">
+    <header><span class="n">6</span><h2>Comparar e investigar</h2></header>
+    <div class="dos">
+      <div>
+        <p><b>Dónde se usa un insumo:</b> clic en su nombre (por ejemplo CAPATAZ). Se abre un panel con su precio, en cuántas partidas está y la cantidad en cada una. Clic en una partida de la lista para ir a ella.</p>
+        <p><b>Cierre del APU:</b> al final, la suma de categorías da el P.U., y <b>metrado × P.U.</b> da el parcial de la partida, que sube a su título hasta el costo directo.</p>
+        <p><b>La misma partida en otros campamentos:</b> lista las partidas con el mismo nombre y unidad. Si alguna tiene otro P.U., sale en ámbar con la diferencia: es lo primero que conviene revisar.</p>
+      </div>
+      <figure style="margin:0"><img src="manual/7-donde-se-usa.png" alt="Panel Dónde se usa del capataz" loading="lazy"></figure>
+    </div>
+    <figure><img src="manual/8-cierre.png" alt="Cierre del APU y la misma partida en otros campamentos" loading="lazy"></figure>
+  </section>
+
+  <p style="font-size:var(--t-aux);color:var(--gris);margin:0 0 16px">Las capturas son de un presupuesto de ejemplo inventado (Institución educativa de ejemplo); los precios no son reales.</p>
+  <div class="nota"><b>Consejos:</b> el botón <b>◐</b> cambia a tema oscuro. En el celular funciona igual; las líneas del APU se ven como tarjetas. Si algo no cuadra (un P.U. distinto en el presupuesto y en el APU, una partida sin APU), el visor lo marca en rojo.</div>
+  <a class="cta" href="./">Abrir el visor</a>
+</main>
+<footer>VidBIM · Visor de APU · mismas reglas de cálculo que VidBIM Costos</footer>
+</body>
+</html>

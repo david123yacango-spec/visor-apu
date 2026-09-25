@@ -284,6 +284,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   <div class="der">
     <button class="btn" id="btnCambiar" hidden title="Cargar otros Excel"><span class="largo">Otros archivos</span><span aria-hidden="true">⇄</span></button>
     <button class="btn" onclick="abrirComo()"><span class="largo">¿Cómo se lee un APU?</span><span class="corto" aria-label="¿Cómo se lee un APU?">?</span></button>
+    <a class="btn" href="manual.html" title="Manual de uso" style="text-decoration:none">Manual</a>
     <button class="btn" onclick="tema()" title="Tema claro / oscuro">◐</button>
   </div>
 </header>
@@ -317,6 +318,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
       <input type="file" id="archivo" accept=".xlsx,.xls" multiple hidden>
     </div>
     <p class="privado">Tus Excel se leen en el navegador y no se suben a ningún servidor.</p>
+    <p class="privado"><a href="manual.html" style="color:var(--azul)">¿Primera vez? Lea el manual (6 pasos)</a></p>
   </div>
 </main>
 
@@ -498,7 +500,7 @@ let porItemFila = {};    // ítem → índice
 let sel = -1;
 
 const MENORES = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'en', 'a', 'al', 'para', 'con', 'por', 'o', 'u']);
-function titleCase(s) { return s.toLowerCase().replace(/[a-záéíóúñü][^\s()–-]*/g, (w, i) => i > 0 && MENORES.has(w) ? w : w[0].toUpperCase() + w.slice(1)); }
+function titleCase(s) { return s.toLowerCase().replace(/[a-záéíóúñü][^\s()–-]*/g, (w, i, todo) => i > 0 && i + w.length < todo.trimEnd().length && MENORES.has(w) ? w : w[0].toUpperCase() + w.slice(1)); }
 function nombreCorto(s) { return s.replace(/^CAMPAMENTO\s+/i, ''); }
 
 function abrirTablero() {

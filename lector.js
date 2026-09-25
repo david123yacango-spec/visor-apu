@@ -21,7 +21,10 @@
 
   /** Filas de una hoja como arreglos (columna A = índice 0); las celdas con solo espacios cuentan como vacías. */
   function filasDe(XLSX, ws) {
-    var filas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true });
+    // Siempre desde A1: si la hoja empieza más abajo o más a la derecha, las filas y columnas no se corren.
+    var rango = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : null;
+    if (rango) { rango.s.r = 0; rango.s.c = 0; }
+    var filas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true, range: rango ? XLSX.utils.encode_range(rango) : undefined });
     for (var i = 0; i < filas.length; i++) {
       var f = filas[i] || [];
       for (var j = 0; j < f.length; j++) if (typeof f[j] === 'string' && f[j].trim() === '') f[j] = null;
