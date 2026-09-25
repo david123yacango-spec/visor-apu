@@ -397,6 +397,136 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .rt-top td.num{text-align:left}.rt-top td.pct{grid-column:1/-1;width:auto}
   .rt-top tfoot,.rt-top tfoot tr,.rt-top tfoot td{display:block}
 }
+/* ─ Balance de insumos (maqueta-balance-insumos.html, limitado a #balance) ─ */
+#balance{display:grid;gap:16px;padding:16px;max-width:1720px;margin:0 auto}
+#balance{grid-template-columns:minmax(0,1fr)}#balance > *{min-width:0}
+#balance button.op{font:inherit;font-size:var(--t-aux)}
+#balance .limpiar{cursor:pointer}
+#balance .masf{display:none}
+.cab .vistas{display:flex;gap:4px;margin-left:8px}
+.cab .vistas a{color:var(--cabecera-texto);text-decoration:none;font-size:var(--t-tabla);padding:6px 10px;border-radius:var(--radio);opacity:.85;white-space:nowrap}
+.cab .vistas a:hover{background:var(--cabecera-hover);opacity:1}
+.cab .vistas a.activo{background:var(--cabecera-hover);opacity:1}
+@media (max-width:1250px){ .cab .archivos{display:none} }
+@media (max-width:700px){ .cab .vistas{display:none} #balance{padding:12px;gap:10px} #balance .filtros input[type=search]{min-width:0;flex:1 1 100%} }
+.pres .pie a{color:var(--azul);text-decoration:none}
+#balance .cabbal{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;padding:14px 16px 16px}
+#balance .cabbal h1{font-family:var(--f-marca);font-weight:600;font-size:20px;letter-spacing:-.02em;margin:0 0 8px}
+#balance .alcance{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:var(--t-aux);color:var(--gris)}
+#balance .alcance .op{border:1px solid var(--linea-fuerte);border-radius:999px;padding:4px 12px;background:var(--superficie);color:var(--tinta-2);cursor:pointer}
+#balance .alcance .op.on{background:var(--azul-tinte);border-color:var(--azul);color:var(--azul);font-weight:600}
+#balance .alcance .titulo{font-family:var(--f-datos)}
+#balance .tot{text-align:right}
+#balance .tot .lbl{font-size:var(--t-aux);color:var(--gris);letter-spacing:.08em;text-transform:uppercase;font-family:var(--f-datos)}
+#balance .tot .val{font-family:var(--f-marca);font-weight:800;font-size:var(--t-pu);letter-spacing:-.03em;color:var(--azul);line-height:1.1}
+#balance .tot .val small{font-size:14px;font-weight:600;letter-spacing:0;margin-right:.25em}
+#balance .tot .por{font-size:var(--t-aux);color:var(--gris)}
+#balance .tot .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+#balance .filtros{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 16px;border-top:1px solid var(--linea);font-size:var(--t-aux);color:var(--gris)}
+#balance .filtros input[type=search]{min-width:240px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:6px 10px;background:var(--superficie);color:var(--tinta);font-size:var(--t-tabla)}
+#balance .filtros .grupo{display:flex;align-items:center;gap:6px}
+#balance .filtros .rango input{width:78px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:4px 8px;font-family:var(--f-datos);font-size:var(--t-aux);background:var(--superficie);color:var(--tinta);text-align:right}
+#balance .filtros select{border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:4px 8px;background:var(--superficie);color:var(--tinta);font-size:var(--t-aux)}
+#balance .chipc{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--linea-fuerte);border-radius:999px;padding:3px 10px;font-size:var(--t-aux);color:var(--tinta-2);background:var(--superficie);cursor:pointer;user-select:none}
+#balance .chipc::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
+#balance .chipc.on{background:var(--t);border-color:var(--c);color:var(--c);font-weight:600}
+#balance .mo{--c:var(--mo);--t:var(--mo-tinte)}
+#balance .mat{--c:var(--mat);--t:var(--mat-tinte)}
+#balance .eq{--c:var(--eq);--t:var(--eq-tinte)}
+#balance .sc{--c:var(--sc);--t:var(--sc-tinte)}
+#balance .filtros .limpiar{margin-left:auto;color:var(--azul);background:none;border:0;font-size:var(--t-aux)}
+#balance .tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+#balance .tj{background:var(--t);border-radius:var(--radio);border-bottom:3px solid var(--c);padding:10px 12px;display:grid;gap:4px}
+#balance .tj .nm{font-size:var(--t-aux);font-weight:700;color:var(--c);letter-spacing:.04em;text-transform:uppercase}
+#balance .tj .val{font-family:var(--f-datos);font-weight:600;font-size:18px;letter-spacing:-.01em}
+#balance .tj .val small{font-size:var(--t-aux);color:var(--gris);font-weight:500;margin-right:.3em}
+#balance .tj .tr{height:6px;background:rgba(0,0,0,.08);border-radius:999px;overflow:hidden}
+#balance .tj .tr i{display:block;height:100%;background:var(--c);border-radius:999px}
+#balance .tj .pc{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--tinta-2)}
+#balance .pareto{padding:12px 16px 14px}
+#balance .pareto h2{margin:0 0 8px;font-size:var(--t-seccion);font-weight:600;display:flex;gap:10px;align-items:baseline}
+#balance .pareto h2 small{font-weight:400;color:var(--gris);font-size:var(--t-aux)}
+#balance .pareto .barra{position:relative;display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--superficie-3)}
+#balance .pareto .barra i{display:block;height:100%}
+#balance .pareto .barra .a{background:var(--azul)}
+#balance .pareto .barra .b{background:#8FA3F5}
+#balance .pareto .barra .c{background:var(--superficie-3)}
+#balance .pareto .marca80{position:absolute;left:80%;top:-4px;bottom:-4px;width:2px;background:var(--tinta)}
+#balance .pareto .ley{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:var(--t-aux);color:var(--tinta-2)}
+#balance .pareto .ley b{font-family:var(--f-datos);font-weight:600;color:var(--tinta)}
+#balance .pareto .ley .k{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+#balance .pareto label{margin-left:auto;display:flex;gap:6px;align-items:center;cursor:pointer}
+#balance .abc{display:inline-block;font-family:var(--f-datos);font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:999px;border:1px solid transparent}
+#balance .abc.A{background:var(--azul-tinte);color:var(--azul);border-color:var(--azul-tinte)}
+#balance .abc.B{background:var(--superficie-3);color:var(--tinta-2)}
+#balance .abc.C{color:var(--gris);border-color:var(--linea)}
+#balance table.bal{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
+#balance .bal th{position:sticky;top:0;z-index:1;background:var(--superficie-2);font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:7px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;cursor:pointer}
+#balance .bal th.num{text-align:right}
+#balance .bal th.orden::after{content:" ↓";color:var(--azul)}
+#balance .bal td{padding:6px 8px;border-bottom:1px solid var(--linea);vertical-align:middle;white-space:nowrap}
+#balance .bal td.ins{white-space:normal}
+#balance .bal td.ins button{all:unset;cursor:pointer;color:var(--tinta);border-bottom:1px dotted var(--linea-fuerte)}
+#balance .bal td.ins button:hover{color:var(--azul);border-color:var(--azul)}
+#balance .bal td.cod{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris)}
+#balance .bal td.und{color:var(--gris);font-family:var(--f-datos);font-size:var(--t-aux)}
+#balance .bal td.cost{font-weight:600}
+#balance .bal tr.g td{background:var(--t);padding:8px;border-bottom:1px solid var(--linea)}
+#balance .bal tr.g .gh{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center}
+#balance .bal tr.g .nm{color:var(--c);font-weight:700;font-size:var(--t-tabla)}
+#balance .bal tr.g .nm small{font-weight:400;color:var(--gris);margin-left:8px;font-size:var(--t-aux)}
+#balance .bal tr.g .tr{height:6px;background:rgba(0,0,0,.08);border-radius:999px;overflow:hidden;max-width:360px}
+#balance .bal tr.g .tr i{display:block;height:100%;background:var(--c);border-radius:999px}
+#balance .bal tr.g .sub{font-family:var(--f-datos);font-weight:600}
+#balance .bal tr.g .pc{font-family:var(--f-datos);color:var(--tinta-2);font-size:var(--t-aux)}
+#balance .bal tr.mas td{color:var(--gris);font-size:var(--t-aux);text-align:center}
+#balance .bal tr.mas button{all:unset;cursor:pointer;color:var(--azul);font-weight:500}
+#balance .bal .mini{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center;width:130px}
+#balance .bal .mini i{display:block;height:6px;background:var(--c,var(--azul));border-radius:999px}
+#balance .bal .mini span{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris);text-align:right}
+#balance .bal tfoot td{font-family:var(--f-datos);font-weight:600;background:var(--superficie-2);border-bottom:0}
+#balance .pie2{padding:10px 16px;font-size:var(--t-aux);color:var(--gris);display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--linea)}
+@media (max-width:900px){
+#balance .cabbal{grid-template-columns:1fr}
+#balance .tot{text-align:left}
+#balance .tot .btns{justify-content:flex-start}
+#balance .filtros .rango,#balance .filtros .orden{display:none}
+#balance .filtros .masf{display:inline-flex}
+#balance .bal .oc{display:none}
+#balance .bal tr.g .gh{grid-template-columns:1fr auto;grid-template-areas:"n s" "b p"}
+#balance .bal tr.g .nm{grid-area:n}
+#balance .bal tr.g .tr{grid-area:b;max-width:none}
+#balance .bal tr.g .sub{grid-area:s}
+#balance .bal tr.g .pc{grid-area:p;text-align:right}
+}
+@media (min-width:901px){
+#balance .filtros .masf{display:none}
+}
+@media (max-width:700px){
+#balance .vista{padding:12px;gap:10px}
+#balance .cab nav{display:none}
+#balance .cab .der .ayuda{display:none}
+#balance .tarjetas{grid-template-columns:repeat(2,minmax(0,1fr))}
+#balance .tj .val{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#balance .pareto h2{flex-wrap:wrap}
+#balance .pareto label{margin-left:0;width:100%}
+#balance .filtros .grupo{flex-wrap:wrap}
+#balance .bal tr.g .gh{grid-template-columns:minmax(0,1fr) auto}
+#balance .bal thead{display:none}
+#balance .bal,#balance .bal tbody,#balance .bal tr:not(.g),#balance .bal td{display:block;width:100%}
+#balance .bal tr:not(.g):not(.mas){display:grid;grid-template-columns:1fr 1fr;gap:0 8px;padding:8px;border-bottom:1px solid var(--linea)}
+#balance .bal tr:not(.g) td{border:0;padding:2px 0}
+#balance .bal td.cod{grid-column:1/-1;order:-2}
+#balance .bal td.ins{grid-column:1/-1;order:-1;font-weight:500}
+#balance .bal td.num::before,#balance .bal td.und::before{content:attr(data-l);display:block;font-size:10px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em}
+#balance .bal td.num{text-align:left}
+#balance .bal td.pct{grid-column:1/-1}
+#balance .bal .mini{width:100%}
+#balance .bal tr.g{display:block}
+#balance .bal tr.g td{display:block}
+#balance .bal tfoot,#balance .bal tfoot tr,#balance .bal tfoot td{display:block}
+}
+
 </style>
 </head>
 <body>
@@ -421,6 +551,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
     <svg><use href="#vidbim-s"/></svg>
     <span class="wm"><span class="a">Vid</span><span class="b">BIM</span><span class="c">Visor de APU</span></span>
   </a>
+  <nav class="vistas" id="vistas" hidden aria-label="Vistas"><a href="#" data-vista="presupuesto" class="activo">Presupuesto</a><a href="#balance" data-vista="balance">Balance de insumos</a></nav>
   <div class="archivos" id="chipsArchivos"></div>
   <div class="der">
     <button class="btn" id="btnCambiar" hidden title="Agregar otro proyecto (sus dos Excel)"><span class="largo">Agregar proyecto</span><span class="corto" aria-hidden="true">＋</span></button>
@@ -490,7 +621,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
       </table>
       <div class="nada" id="nadaPres" hidden>Nada coincide con la búsqueda.</div>
     </div>
-    <div class="pie"><span id="pieInfo"></span><span id="pieCd"></span></div>
+    <div class="pie"><span id="pieInfo"></span><span><a href="#balance">Balance de insumos →</a> · <span id="pieCd"></span></span></div>
   </section>
 
   <div class="divisor" id="divisor" role="separator" aria-orientation="vertical" aria-label="Arrastre para cambiar el ancho del presupuesto" title="Arrastre para ensanchar el presupuesto o el APU · doble clic: ancho normal"></div>
@@ -498,6 +629,9 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
     <div class="vacio">Elija una partida del presupuesto para ver su APU.</div>
   </section>
 </main>
+
+<!-- ─────── Balance de insumos ─────── -->
+<main id="balance" hidden aria-label="Balance de insumos"></main>
 
 <footer class="pie" id="pieTablero" hidden>
   <span>Los Excel se leen en tu navegador y no se envían a ningún servidor.</span>
@@ -671,6 +805,7 @@ $('#btnCambiar').addEventListener('click', () => mostrarPortada());
 function mostrarPortada() {
   if (activo) guardarEstado();
   $('#tablero').hidden = true; $('#pieTablero').hidden = true; $('#pestanas').hidden = true; $('#avisoGuardado').hidden = true;
+  $('#balance').hidden = true; $('#vistas').hidden = true;
   $('#portada').hidden = false; $('#btnCambiar').hidden = true; $('#chipsArchivos').innerHTML = '';
   pintarGuardados();
 }
@@ -858,6 +993,8 @@ function abrirTablero(p) {
   const i = est.item != null && idx[est.item] != null ? idx[est.item] : F.findIndex(f => f.esPartida);
   if (i >= 0) irA(i, false); else refrescar();
   if (est.buscar) { $('#buscar').value = est.buscar; buscar(); filasDom[sel]?.scrollIntoView({ block: 'center' }); }
+  balDatos = null; ultimoTitulo = null; balEstado.abiertos.clear();
+  aplicarHash();
 }
 
 // ── plegado ──
@@ -1023,7 +1160,7 @@ $('#cuerpoPres').addEventListener('click', e => {
 $('#cuerpoPres').addEventListener('dblclick', e => { const tr = e.target.closest('tr'); if (tr) plegar(+tr.dataset.i, !plegados.has(+tr.dataset.i)); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { cerrar(); return; }
-  if ($('#tablero').hidden || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.id === 'divisor' || sel < 0) return;
+  if ($('#tablero').hidden || !$('#balance').hidden || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.id === 'divisor' || sel < 0) return;
   if ($('.cajon.abierto')) return;
   const vis = filasDom.map((tr, i) => i).filter(i => !filasDom[i].classList.contains('oculta'));
   const k = vis.indexOf(sel);
@@ -1219,6 +1356,207 @@ function verSubpartida(codigo) {
   abrir('usos'); $('#usosCuerpo').scrollTop = 0;
 }
 
+
+// ─────────── Vistas: Presupuesto · Balance de insumos (URL #balance o #balance/02.03) ───────────
+let vistaActual = 'presupuesto', balAlc = '', ultimoTitulo = null;
+const balEstado = { q: '', cats: new Set(['mo', 'mat', 'eq', 'sc']), pmin: null, pmax: null, cmin: null, cmax: null, orden: 'costo', dir: -1, soloA: false, abiertos: new Set(), masFiltros: false };
+let balDatos = null;   // { alc, lista, total, partidas } del alcance actual
+function irBalance(alc) { location.hash = '#balance' + (alc ? '/' + alc : ''); }
+function irPresupuesto() { if (location.hash.startsWith('#balance')) history.pushState(null, '', location.pathname + location.search); aplicarHash(); }
+window.addEventListener('hashchange', aplicarHash);
+window.addEventListener('popstate', aplicarHash);
+function aplicarHash() {
+  if (!D || $('#portada').hidden === false) return;
+  const m = location.hash.match(/^#balance(?:\/(.+))?$/);
+  vistaActual = m ? 'balance' : 'presupuesto';
+  $('#vistas').hidden = false;
+  document.querySelectorAll('#vistas a').forEach(a => a.classList.toggle('activo', a.dataset.vista === vistaActual));
+  if (m) {
+    const alc = m[1] && porItemFila[decodeURIComponent(m[1])] != null ? decodeURIComponent(m[1]) : '';
+    if (alc) ultimoTitulo = alc;
+    $('#tablero').hidden = true; $('#balance').hidden = false;
+    if (!balDatos || balDatos.alc !== alc || balDatos.D !== D) { balAlc = alc; balDatos = null; }
+    pintarBalance();
+    window.scrollTo(0, 0);
+  } else {
+    $('#balance').hidden = true; $('#tablero').hidden = false;
+    ajustarAlto();
+  }
+}
+document.querySelectorAll('#vistas a').forEach(a => a.addEventListener('click', e => {
+  e.preventDefault();
+  if (a.dataset.vista === 'balance') irBalance(''); else irPresupuesto();
+}));
+
+// Insumos de un conjunto de partidas: Σ metrado × cantidad y Σ metrado × parcial; las subpartidas se abren en sus insumos.
+function insumosDe(partidas) {
+  const ins = new Map();
+  const sumar = (l, m, via) => {
+    const k = l.codigo + '|' + l.descripcion;
+    let x = ins.get(k);
+    if (!x) ins.set(k, x = { k, codigo: l.codigo, descripcion: l.descripcion, unidad: l.unidad, categoria: l.categoria, cantidad: 0, costo: 0, precios: new Set(), porcentaje: false, partidas: new Set() });
+    if (l.tipo === 'pmo' || l.tipo === 'pmt') x.porcentaje = true; else { x.cantidad += m * (l.cantidad || 0); if (l.precio != null) x.precios.add(l.precio); }
+    x.costo += m * (l.parcial || 0);
+    x.partidas.add(via);
+  };
+  for (const f of partidas) {
+    const a = f.apu, m = f.metrado || 0;
+    if (!a || !m) continue;
+    for (const l of a.lineas) {
+      if (l.categoria === 'sp' && l.subpartida) { for (const s of l.subpartida.lineas) sumar(s, m * (l.cantidad || 0), f.item); }
+      else sumar(l, m, f.item);
+    }
+  }
+  const lista = [...ins.values()].map(x => ({ ...x, costo: Lector.r2(x.costo), cantidad: x.cantidad, precio: x.precios.size === 1 ? [...x.precios][0] : x.precios.size ? Math.max(...x.precios) : null, nPartidas: x.partidas.size }))
+    .sort((a, b) => b.costo - a.costo);
+  // Curva ABC sobre todo el alcance: A hasta el 80 % del costo, B hasta el 95 %, C el resto.
+  const total = lista.reduce((s, x) => s + x.costo, 0);
+  let acum = 0;
+  for (const x of lista) { x.abc = acum < 0.8 * total ? 'A' : acum < 0.95 * total ? 'B' : 'C'; acum += x.costo; }
+  return { lista, total: Lector.r2(total) };
+}
+
+function datosBalance() {
+  if (balDatos && balDatos.alc === balAlc && balDatos.D === D) return balDatos;
+  const pre = balAlc ? balAlc + '.' : null;
+  const partidas = D.filas.filter(f => f.esPartida && (!pre || f.item.startsWith(pre)));
+  const r = insumosDe(partidas);
+  return balDatos = { alc: balAlc, D, partidas, ...r };
+}
+
+function pintarBalance() {
+  const d = datosBalance();
+  const t = balAlc ? D.filas[porItemFila[balAlc]] : null;
+  const tit = ultimoTitulo && porItemFila[ultimoTitulo] != null ? D.filas[porItemFila[ultimoTitulo]] : null;
+  const ref = t ? t.total : D.cd;
+  const dif = Lector.r2(d.total - (ref || 0));
+  const b = balEstado;
+  const nCats = CATS.filter(([c]) => d.lista.some(x => x.categoria === c) || c !== 'sc');
+  $('#balance').innerHTML =
+    `<section class="panel"><div class="cabbal"><div><h1>Balance de insumos</h1><div class="alcance"><span>Alcance:</span>` +
+    `<button class="op${!balAlc ? ' on' : ''}" data-alc="">Todo el proyecto</button>` +
+    (tit ? `<button class="op${balAlc === tit.item ? ' on' : ''}" data-alc="${esc(tit.item)}">Título seleccionado <span class="titulo">· ${esc(tit.item)} ${esc(titleCase(tit.descripcion))}</span></button>` : `<span class="op" style="opacity:.5;cursor:default" title="Elija un título en el presupuesto">Título seleccionado</span>`) +
+    `<span>·</span><span><b class="datos" style="color:var(--tinta)">${d.lista.length.toLocaleString('es-PE')}</b> insumos en <b class="datos" style="color:var(--tinta)">${d.partidas.length.toLocaleString('es-PE')}</b> partidas</span>` +
+    `<button class="op" id="balVolver" title="Volver al presupuesto">← Presupuesto</button></div></div>` +
+    `<div class="tot"><div class="lbl">Costo directo del alcance</div><div class="val"><small>S/</small>${f2(d.total)}</div>` +
+    `<div class="por">Σ metrado × cantidad × precio, insumo por insumo` + (Math.abs(dif) >= 0.005 ? ` · difiere S/ ${f2(dif)} del ${t ? 'total del título' : 'costo directo'} por redondeos` : '') + `</div>` +
+    `<div class="btns"><button class="btn" id="balExportar">Exportar a Excel</button></div></div></div>` +
+    `<div class="filtros"><input type="search" id="balQ" placeholder="Buscar insumo por nombre o código…" value="${esc(b.q)}">` +
+    `<div class="grupo"><span>Categoría</span>` + nCats.map(([c, n]) => `<button class="chipc ${c}${b.cats.has(c) ? ' on' : ''}" data-cat="${c}">${n}</button>`).join('') + `</div>` +
+    `<div class="grupo rango"${b.masFiltros ? ' style="display:flex"' : ''}><span>Precio S/</span><input id="balPmin" inputmode="decimal" placeholder="mín" value="${b.pmin ?? ''}"><span>–</span><input id="balPmax" inputmode="decimal" placeholder="máx" value="${b.pmax ?? ''}"></div>` +
+    `<div class="grupo rango"${b.masFiltros ? ' style="display:flex"' : ''}><span>Costo S/</span><input id="balCmin" inputmode="decimal" placeholder="mín" value="${b.cmin ?? ''}"><span>–</span><input id="balCmax" inputmode="decimal" placeholder="máx" value="${b.cmax ?? ''}"></div>` +
+    `<div class="grupo orden"${b.masFiltros ? ' style="display:flex"' : ''}><span>Ordenar por</span><select id="balOrden">` +
+    [['costo', 'Costo, mayor primero'], ['cantidad', 'Cantidad'], ['nombre', 'Nombre'], ['precio', 'Precio'], ['partidas', 'N.º de partidas']].map(([v, n]) => `<option value="${v}"${b.orden === v ? ' selected' : ''}>${n}</option>`).join('') +
+    `</select></div><button class="btn chico masf" id="balMas">${b.masFiltros ? 'Menos filtros' : 'Más filtros'}</button><button class="limpiar" id="balLimpiar">Limpiar filtros</button></div></section>` +
+    `<div id="balRes"></div>`;
+  pintarBalanceRes();
+  const cont = $('#balance');
+  cont.querySelectorAll('.alcance [data-alc]').forEach(x => x.addEventListener('click', () => irBalance(x.dataset.alc)));
+  $('#balVolver').addEventListener('click', () => irPresupuesto());
+  cont.querySelectorAll('.chipc').forEach(x => x.addEventListener('click', () => {
+    const c = x.dataset.cat;
+    if (b.cats.has(c) && b.cats.size > 1) b.cats.delete(c); else b.cats.add(c);
+    x.classList.toggle('on', b.cats.has(c)); pintarBalanceRes();
+  }));
+  let tq = 0;
+  $('#balQ').addEventListener('input', e => { clearTimeout(tq); tq = setTimeout(() => { b.q = e.target.value; pintarBalanceRes(); }, 150); });
+  const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? null : n; };
+  [['balPmin', 'pmin'], ['balPmax', 'pmax'], ['balCmin', 'cmin'], ['balCmax', 'cmax']].forEach(([id, k]) =>
+    $('#' + id).addEventListener('input', e => { clearTimeout(tq); tq = setTimeout(() => { b[k] = num(e.target.value); pintarBalanceRes(); }, 250); }));
+  $('#balOrden').addEventListener('change', e => { b.orden = e.target.value; b.dir = e.target.value === 'nombre' ? 1 : -1; pintarBalanceRes(); });
+  $('#balMas').addEventListener('click', () => { b.masFiltros = !b.masFiltros; pintarBalance(); });
+  $('#balLimpiar').addEventListener('click', () => { Object.assign(b, { q: '', cats: new Set(['mo', 'mat', 'eq', 'sc']), pmin: null, pmax: null, cmin: null, cmax: null, orden: 'costo', dir: -1, soloA: false }); b.abiertos.clear(); pintarBalance(); });
+  $('#balExportar').addEventListener('click', exportarBalance);
+}
+
+function filtradosBalance() {
+  const d = datosBalance(), b = balEstado;
+  const q = sinTilde(b.q.trim());
+  return d.lista.filter(x => (b.cats.has(x.categoria) || (x.categoria === 'sp')) &&
+    (!q || sinTilde(x.codigo + ' ' + x.descripcion).includes(q)) &&
+    (b.pmin == null || (x.precio ?? -Infinity) >= b.pmin) && (b.pmax == null || (x.precio ?? Infinity) <= b.pmax) &&
+    (b.cmin == null || x.costo >= b.cmin) && (b.cmax == null || x.costo <= b.cmax) &&
+    (!b.soloA || x.abc === 'A'));
+}
+function ordenarBalance(xs) {
+  const b = balEstado, k = b.orden, s = b.dir;
+  const v = x => k === 'costo' ? x.costo : k === 'cantidad' ? (x.porcentaje ? -1 : x.cantidad) : k === 'precio' ? (x.precio ?? -1) : k === 'partidas' ? x.nPartidas : k === 'codigo' ? x.codigo : x.descripcion;
+  return xs.slice().sort((a, c) => { const A = v(a), C = v(c); return (typeof A === 'string' ? A.localeCompare(C, 'es') : A - C) * s; });
+}
+
+function pintarBalanceRes() {
+  const d = datosBalance(), b = balEstado;
+  const fs = filtradosBalance();
+  const hayFiltro = !!b.q.trim() || b.pmin != null || b.pmax != null || b.cmin != null || b.cmax != null || b.soloA || b.cats.size < 4;
+  const totalF = fs.reduce((s, x) => s + x.costo, 0);
+  const porCat = CATS.map(([c, n]) => { const xs = fs.filter(x => x.categoria === c); return { c, n, xs, s: xs.reduce((a, x) => a + x.costo, 0) }; });
+  const maxCat = Math.max(...porCat.map(g => g.s), 0.01);
+  // Tarjetas
+  let h = `<section class="tarjetas" aria-label="Totales por categoría">` + porCat.map(g =>
+    `<div class="tj ${g.c}"><span class="nm">${g.n}</span><span class="val"><small>S/</small>${f2(g.s)}</span><span class="tr"><i style="width:${(g.s / maxCat * 100).toFixed(2)}%"></i></span>` +
+    `<span class="pc">${totalF ? (g.s / totalF * 100).toFixed(1) : '0.0'} % · ${g.xs.length.toLocaleString('es-PE')} insumo${g.xs.length === 1 ? '' : 's'}</span></div>`).join('') + `</section>`;
+  // Curva ABC (siempre sobre todo el alcance)
+  const cls = k => d.lista.filter(x => x.abc === k), A = cls('A'), B = cls('B'), C = cls('C');
+  const sA = A.reduce((s, x) => s + x.costo, 0), sB = B.reduce((s, x) => s + x.costo, 0), sC = d.total - sA - sB;
+  const p = v => d.total ? v / d.total * 100 : 0;
+  h += `<section class="panel pareto"><h2>Curva ABC <small>qué pocos insumos hacen casi todo el costo</small><label><input type="checkbox" id="balSoloA"${b.soloA ? ' checked' : ''}> Solo los del 80 % (clase A)</label></h2>` +
+    `<div class="barra"><i class="a" style="width:${p(sA).toFixed(2)}%" title="Clase A · ${A.length} insumos · ${p(sA).toFixed(1)} %"></i><i class="b" style="width:${p(sB).toFixed(2)}%" title="Clase B · ${B.length} insumos"></i><i class="c" style="width:${p(sC).toFixed(2)}%"></i><span class="marca80"></span></div>` +
+    `<div class="ley"><span><i class="k" style="background:var(--azul)"></i><b>A · ${A.length} insumos</b> hacen el ${p(sA).toFixed(0)} % del costo (S/ ${f2(sA)})</span>` +
+    `<span><i class="k" style="background:#8FA3F5"></i><b>B · ${B.length}</b> el siguiente ${p(sB).toFixed(0)} %</span>` +
+    `<span><i class="k" style="background:var(--superficie-3);border:1px solid var(--linea-fuerte)"></i><b>C · ${C.length}</b> el ${p(sC).toFixed(0)} % restante</span>` +
+    `<span style="color:var(--gris)">La barra es el costo acumulado; la raya negra marca el 80 %.</span></div></section>`;
+  // Tabla agrupada
+  const col = (k, n, num) => `<th class="${num ? 'num' : ''}${b.orden === k ? ' orden' : ''}${num === 'oc' ? ' oc' : ''}" data-orden="${k}">${n}</th>`;
+  h += `<section class="panel" style="overflow:auto"><table class="bal"><thead><tr>${col('codigo', 'Código')}${col('nombre', 'Insumo')}<th>Und.</th>${col('cantidad', 'Cantidad', true)}${col('precio', 'Precio S/', true)}${col('costo', 'Costo S/', true)}<th class="num">% del total</th><th class="oc">ABC</th>${col('partidas', 'Partidas', 'oc')}</tr></thead>`;
+  if (!fs.length) h += `<tbody><tr class="mas"><td colspan="9" style="padding:24px">Ningún insumo coincide · <button id="balLimpiar2">Limpiar filtros</button></td></tr></tbody>`;
+  for (const g of porCat) {
+    if (b.cats.size < 4 && !b.cats.has(g.c) && !g.xs.length) continue;
+    const xs = ordenarBalance(g.xs), maxG = Math.max(...xs.map(x => x.costo), 0.01);
+    const lim = hayFiltro || b.abiertos.has(g.c) ? xs.length : 50;
+    h += `<tbody class="${g.c}"><tr class="g"><td colspan="9"><div class="gh"><span class="nm">${g.n}<small>${xs.length.toLocaleString('es-PE')} insumo${xs.length === 1 ? '' : 's'}</small></span>` +
+      `<span class="tr"><i style="width:${(g.s / maxCat * 100).toFixed(2)}%"></i></span><span class="sub">S/ ${f2(g.s)}</span><span class="pc">${totalF ? (g.s / totalF * 100).toFixed(1) : '0.0'} %</span></div></td></tr>`;
+    h += xs.slice(0, lim).map(x => `<tr><td class="cod">${esc(x.codigo)}</td><td class="ins"><button data-ins="${esc(x.k)}">${esc(x.descripcion)}</button></td><td class="und" data-l="Und.">${esc(unidadVista(x.unidad))}</td>` +
+      `<td class="num" data-l="Cantidad">${x.porcentaje ? '—' : f2(x.cantidad)}</td><td class="num" data-l="Precio S/">${x.porcentaje || x.precio == null ? '—' : f2(x.precio)}</td><td class="num cost" data-l="Costo S/">${f2(x.costo)}</td>` +
+      `<td class="pct"><div class="mini"><i style="width:${(x.costo / maxG * 100).toFixed(1)}%"></i><span>${totalF ? (x.costo / totalF * 100).toFixed(1) : '0.0'} %</span></div></td>` +
+      `<td class="oc"><span class="abc ${x.abc}">${x.abc}</span></td><td class="num oc">${x.nPartidas.toLocaleString('es-PE')}</td></tr>`).join('');
+    if (xs.length > lim) { const resto = xs.slice(lim), sr = resto.reduce((s, x) => s + x.costo, 0);
+      h += `<tr class="mas"><td colspan="9"><button data-abrir="${g.c}">Mostrar los otros ${resto.length.toLocaleString('es-PE')} insumos de ${g.n.toLowerCase()}</button> · S/ ${f2(sr)} · ${totalF ? (sr / totalF * 100).toFixed(1) : '0.0'} %</td></tr>`; }
+    h += `</tbody>`;
+  }
+  h += `<tfoot><tr><td colspan="5">${hayFiltro ? 'Total de lo filtrado' : 'Total del alcance'} · ${fs.length.toLocaleString('es-PE')} insumos</td><td class="num">S/ ${f2(totalF)}</td><td colspan="3"></td></tr></tfoot></table>` +
+    `<div class="pie2"><span>Cantidad y costo = Σ metrado × cantidad del APU (× precio). Las subpartidas se cuentan en sus insumos.</span><span>Clic en un encabezado para ordenar · clic en un insumo: dónde se usa.</span></div></section>`;
+  $('#balRes').innerHTML = h;
+  const r = $('#balRes');
+  $('#balSoloA').addEventListener('change', e => { b.soloA = e.target.checked; pintarBalanceRes(); });
+  r.querySelectorAll('th[data-orden]').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.orden;
+    if (b.orden === k) b.dir = -b.dir; else { b.orden = k; b.dir = k === 'nombre' || k === 'codigo' ? 1 : -1; }
+    const s = $('#balOrden'); if (s && [...s.options].some(o => o.value === k)) s.value = k;
+    pintarBalanceRes();
+  }));
+  r.querySelectorAll('[data-abrir]').forEach(x => x.addEventListener('click', () => { b.abiertos.add(x.dataset.abrir); pintarBalanceRes(); }));
+  r.querySelectorAll('td.ins button').forEach(x => x.addEventListener('click', () => dondeSeUsa(x.dataset.ins, null, balAlc || undefined)));
+  $('#balLimpiar2')?.addEventListener('click', () => $('#balLimpiar').click());
+}
+
+function exportarBalance() {
+  const d = datosBalance(), fs = ordenarBalance(filtradosBalance());
+  const t = balAlc ? D.filas[porItemFila[balAlc]] : null;
+  const filas = [[`Balance de insumos · ${t ? t.item + ' ' + t.descripcion : 'Todo el proyecto'}`], [D.encabezado.Proyecto || ''], [`Costo del alcance`, d.total], [],
+    ['Categoría', 'Código', 'Insumo', 'Und.', 'Cantidad', 'Precio S/', 'Costo S/', '% del total', 'ABC', 'Partidas']];
+  const totalF = fs.reduce((s, x) => s + x.costo, 0);
+  for (const [c, n] of CATS) {
+    const xs = fs.filter(x => x.categoria === c); if (!xs.length) continue;
+    const s = xs.reduce((a, x) => a + x.costo, 0);
+    filas.push([n.toUpperCase(), '', `${xs.length} insumos`, '', null, null, Lector.r2(s), Lector.r2(s / totalF * 100)]);
+    xs.forEach(x => filas.push([n, x.codigo, x.descripcion, x.unidad, x.porcentaje ? null : Lector.r4(x.cantidad), x.porcentaje ? null : x.precio, x.costo, Lector.r2(x.costo / totalF * 100), x.abc, x.nPartidas]));
+  }
+  filas.push([], ['TOTAL', '', `${fs.length} insumos`, '', null, null, Lector.r2(totalF)]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(filas), 'Balance');
+  XLSX.writeFile(wb, `Balance de insumos - ${t ? t.item : 'proyecto'}.xlsx`);
+}
+
 // ─────────── Resumen de un título ───────────
 // Gasto por categoría = Σ metrado × subtotal de la categoría en el APU de cada partida.
 // Insumos = Σ metrado × cantidad (y × parcial de la línea); las subpartidas se abren en sus insumos.
@@ -1283,7 +1621,7 @@ function pintarResumen(t) {
   // Principales insumos
   const top = r.lista.slice(0, 10), maxT = Math.max(...top.map(x => x.costo), 0.01);
   const sumaTop = top.reduce((s, x) => s + x.costo, 0);
-  h += `<div class="rt-bloque"><h2>Principales insumos del título <small>los 10 de mayor costo</small></h2>` +
+  h += `<div class="rt-bloque"><h2>Principales insumos del título <small>los 10 de mayor costo</small><span class="der"><button id="btnVerBal">Ver el balance completo del título →</button></span></h2>` +
     `<table class="rt-top"><thead><tr><th>#</th><th>Insumo</th><th>Und.</th><th class="num">Cantidad total</th><th class="num">Precio S/</th><th class="num">Costo S/</th><th class="num">% del título</th></tr></thead><tbody>` +
     top.map((x, i) => `<tr class="${x.categoria}"><td class="n">${i + 1}</td><td class="ins"><div><span class="c"></span><button data-ins="${esc(x.k)}">${esc(x.descripcion)}</button></div></td>` +
       `<td class="und" data-l="Und.">${esc(unidadVista(x.unidad))}</td><td class="num" data-l="Cantidad total">${x.porcentaje ? '—' : f2(x.cantidad)}</td>` +
@@ -1292,11 +1630,14 @@ function pintarResumen(t) {
     `</tbody><tfoot><tr><td colspan="7">Los 10 primeros suman S/ ${f2(sumaTop)}, el ${(sumaTop / r.total * 100).toFixed(1)} % del título.` +
     (r.lista.length > 10 ? ` Los otros ${(r.lista.length - 10).toLocaleString('es-PE')} insumos, el ${(100 - sumaTop / r.total * 100).toFixed(1)} %.` : '') +
     ` Las subpartidas se cuentan en sus insumos.</td></tr></tfoot></table></div>`;
-  h += `<div class="rt-acciones"><button class="btn" id="btnExpResumen">Exportar el resumen a Excel</button></div>`;
+  h += `<div class="rt-acciones"><button class="btn principal" id="btnBalTitulo">Balance de insumos de este título</button><button class="btn" id="btnExpResumen">Exportar el resumen a Excel</button></div>`;
   cont.innerHTML = h;
   cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
   cont.querySelectorAll('.rt-top td.ins button').forEach(b => b.addEventListener('click', () => dondeSeUsa(b.dataset.ins, null, t.item)));
   $('#btnExpResumen').addEventListener('click', () => exportarResumen(t, r));
+  ultimoTitulo = t.item;
+  $('#btnBalTitulo').addEventListener('click', () => irBalance(t.item));
+  $('#btnVerBal').addEventListener('click', () => irBalance(t.item));
 }
 
 // Excel del resumen: categorías y todos los insumos del título.
