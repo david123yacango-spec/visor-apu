@@ -186,7 +186,54 @@ body.compacta .chips .ch-met b,body.compacta .chips .ch-und b{color:var(--azul);
 .peso .ley span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c);margin-right:6px}
 .peso .ley b{font-family:var(--f-datos);font-weight:600;color:var(--tinta)}
 .mo{--c:var(--mo);--t:var(--mo-tinte)}.mat{--c:var(--mat);--t:var(--mat-tinte)}.eq{--c:var(--eq);--t:var(--eq-tinte)}.sc{--c:var(--sc);--t:var(--sc-tinte)}
-.sp{--c:var(--nivel-7);--t:var(--superficie-2)}
+:root{--sp:#455A64;--sp-tinte:#ECEFF1}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sp:#90A4AE;--sp-tinte:#1E2529}}
+:root[data-theme="dark"]{--sp:#90A4AE;--sp-tinte:#1E2529}
+.sp{--c:var(--sp);--t:var(--sp-tinte)}
+/* ─ Resumen de un título ─ */
+.rt-cab h1{color:var(--c,var(--tinta))}
+.rt-bloque{border-top:1px solid var(--linea);padding:14px 16px 16px}
+.rt-bloque h2{margin:0 0 10px;font-size:var(--t-seccion);font-weight:600;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rt-bloque h2 small{font-weight:400;color:var(--gris);font-size:var(--t-aux)}
+.rt-bloque h2 .der{margin-left:auto;font-size:var(--t-aux);font-weight:400}
+.rt-bloque h2 .der button{all:unset;cursor:pointer;color:var(--azul)}
+.rt-bloque h2 .der button:hover{text-decoration:underline}
+.rt-barra{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--superficie-3);margin-bottom:12px}
+.rt-barra i{display:block;height:100%;background:var(--c)}
+.rt-cats{display:grid;gap:6px}
+.rt-cat,.rt-cierre{display:grid;grid-template-columns:12px 150px 1fr 130px 64px;gap:10px;align-items:center;font-size:var(--t-tabla)}
+.rt-cat .pt{width:10px;height:10px;border-radius:2px;background:var(--c);align-self:center}
+.rt-cat .nm{color:var(--c);font-weight:600}
+.rt-cat .tr{height:8px;background:var(--superficie-2);border-radius:999px;overflow:hidden}
+.rt-cat .tr i{display:block;height:100%;background:var(--c);border-radius:999px}
+.rt-cat .sol{font-family:var(--f-datos);font-weight:600;text-align:right;white-space:nowrap}
+.rt-cat .pc{font-family:var(--f-datos);color:var(--gris);text-align:right;white-space:nowrap}
+.rt-cat.rt-sin .sol,.rt-cat.rt-sin .pc{color:var(--gris);font-weight:400}
+.rt-cierre{margin-top:8px;padding-top:8px;border-top:1px solid var(--linea);font-size:var(--t-aux);color:var(--gris)}
+.rt-cierre .sol{font-family:var(--f-datos);text-align:right;color:var(--tinta-2);white-space:nowrap}
+.rt-cierre .q{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid var(--linea-fuerte);color:var(--gris);font-size:10px;line-height:12px;text-align:center;margin-left:4px;cursor:help}
+.rt-redondeo{grid-column:2/6;font-size:var(--t-aux);color:var(--gris)}
+.rt-redondeo b{color:var(--tinta-2);font-family:var(--f-datos);font-weight:500}
+.rt-cierre.ambar,.rt-cierre.ambar .rt-redondeo,.rt-cierre.ambar .sol{color:var(--ambar)}
+table.rt-top{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
+.rt-top th{font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap}
+.rt-top th.num{text-align:right}
+.rt-top td{padding:6px 8px;border-bottom:1px solid var(--linea);vertical-align:middle}
+.rt-top td.n{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris);width:28px}
+.rt-top td.ins button{all:unset;cursor:pointer;color:var(--tinta);border-bottom:1px dotted var(--linea-fuerte)}
+.rt-top td.ins button:hover{color:var(--azul);border-color:var(--azul)}
+.rt-top td.ins .c{flex:none;width:8px;height:8px;border-radius:2px;background:var(--c);margin-top:6px}
+.rt-top td.ins > div{display:flex;gap:8px;align-items:flex-start}
+.rt-top td.und{color:var(--gris);font-family:var(--f-datos);font-size:var(--t-aux)}
+.rt-top td.cost{font-weight:600}
+.rt-top td.pct{width:130px}
+.rt-mini{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center}
+.rt-mini i{display:block;height:6px;background:var(--azul);border-radius:999px;min-width:2px}
+.rt-mini span{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris);text-align:right}
+.rt-top tfoot td{color:var(--gris);font-size:var(--t-aux);border-bottom:0;padding-top:10px}
+.rt-acciones{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 16px}
+.rt-acciones .btn.principal{padding:6px 14px}
+.rt-vacio{padding:40px 16px;text-align:center;color:var(--gris);font-size:var(--t-tabla)}
 td.ins .versp{all:unset;cursor:pointer;margin-left:8px;font-size:var(--t-aux);color:var(--azul);white-space:nowrap}
 td.ins .versp:hover{text-decoration:underline}
 .cajon table.mini{width:100%;border-collapse:collapse;font-size:var(--t-aux);margin:4px 0 12px}
@@ -340,6 +387,15 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .cat header .vercalc{grid-area:b;justify-self:end}
   .cat header .punto{grid-area:p}.cat header h2{grid-area:h}.cat header .sub{grid-area:s}.cat header .pct{grid-area:q}
   .otros ul{grid-template-columns:1fr}
+  .rt-cat{grid-template-columns:12px 1fr auto;grid-template-areas:"p n s" "p b b" "p q q"}
+  .rt-cat .pt{grid-area:p;align-self:start;margin-top:5px}.rt-cat .nm{grid-area:n}.rt-cat .tr{grid-area:b}.rt-cat .sol{grid-area:s}.rt-cat .pc{grid-area:q;text-align:left}
+  .rt-cierre{grid-template-columns:12px 1fr 110px}.rt-cierre .sol{grid-column:3}.rt-redondeo{grid-column:2/4}
+  .rt-top thead{display:none}.rt-top,.rt-top tbody,.rt-top tr,.rt-top td{display:block;width:100%}
+  .rt-top tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;padding:8px 0;border-bottom:1px solid var(--linea)}
+  .rt-top td{border:0;padding:2px 0}.rt-top td.ins{grid-column:1/-1;font-weight:500}.rt-top td.n{display:none}
+  .rt-top td.num::before,.rt-top td.und::before{content:attr(data-l);display:block;font-size:10px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;font-family:var(--f-texto)}
+  .rt-top td.num{text-align:left}.rt-top td.pct{grid-column:1/-1;width:auto}
+  .rt-top tfoot,.rt-top tfoot tr,.rt-top tfoot td{display:block}
 }
 </style>
 </head>
@@ -1030,14 +1086,7 @@ function q(txt, entrada) { return `<button class="q" title="${esc(txt)}" onclick
 
 function pintarApu(f) {
   const cont = $('#apu');
-  if (!f.esPartida) {
-    const hijos = D.filas.filter(g => g.esPartida && g.item.startsWith(f.item + '.')).length;
-    cont.innerHTML = `${miga(f)}<div class="cabpartida"><div><div class="it">Título ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1>` +
-      `<div class="chips"><span>Partidas <b>${hijos.toLocaleString('es-PE')}</b></span></div></div>` +
-      `<div class="pu"><div class="lbl">Total del título</div><div class="val"><small>S/</small>${f2(f.total)}</div><div class="por">suma de sus partidas</div></div></div>` +
-      `<div class="vacio">Elija una partida de este título para ver su APU.</div>`;
-    return;
-  }
+  if (!f.esPartida) { pintarResumen(f); return; }
   const a = f.apu;
   if (!a) {
     cont.innerHTML = `${miga(f)}<div class="cabpartida"><div><div class="it">Partida ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1></div></div>` +
@@ -1170,15 +1219,110 @@ function verSubpartida(codigo) {
   abrir('usos'); $('#usosCuerpo').scrollTop = 0;
 }
 
-function dondeSeUsa(k, itemActual) {
+// ─────────── Resumen de un título ───────────
+// Gasto por categoría = Σ metrado × subtotal de la categoría en el APU de cada partida.
+// Insumos = Σ metrado × cantidad (y × parcial de la línea); las subpartidas se abren en sus insumos.
+function resumenDe(t) {
+  const pre = t.item + '.';
+  const partidas = D.filas.filter(g => g.esPartida && g.item.startsWith(pre));
+  const subtitulos = D.filas.filter(g => !g.esPartida && g.item.startsWith(pre)).length;
+  const cat = { mo: 0, mat: 0, eq: 0, sc: 0, sp: 0 };
+  const ins = new Map();
+  const sumar = (l, m, via) => {
+    const k = l.codigo + '|' + l.descripcion;
+    let x = ins.get(k);
+    if (!x) ins.set(k, x = { k, codigo: l.codigo, descripcion: l.descripcion, unidad: l.unidad, categoria: l.categoria, cantidad: 0, costo: 0, precios: new Set(), porcentaje: false, partidas: new Set() });
+    const pct = l.tipo === 'pmo' || l.tipo === 'pmt';
+    if (pct) x.porcentaje = true; else { x.cantidad += m * (l.cantidad || 0); if (l.precio != null) x.precios.add(l.precio); }
+    x.costo += m * (l.parcial || 0);
+    x.partidas.add(via);
+  };
+  for (const f of partidas) {
+    const a = f.apu, m = f.metrado || 0;
+    if (!a || !m) continue;
+    for (const c of Object.keys(cat)) cat[c] += m * (a.subtotales[c] ?? a.calcSubtotales[c] ?? 0);
+    for (const l of a.lineas) {
+      if (l.categoria === 'sp' && l.subpartida) { for (const s of l.subpartida.lineas) sumar(s, m * (l.cantidad || 0), f.item); }
+      else sumar(l, m, f.item);
+    }
+  }
+  for (const c of Object.keys(cat)) cat[c] = Lector.r2(cat[c]);
+  const suma = Lector.r2(Object.values(cat).reduce((s, v) => s + v, 0));
+  const lista = [...ins.values()].map(x => ({ ...x, costo: Lector.r2(x.costo), precio: x.precios.size === 1 ? [...x.precios][0] : null }))
+    .sort((a, b) => b.costo - a.costo);
+  return { partidas, subtitulos, cat, suma, lista, total: t.total ?? suma };
+}
+
+function pintarResumen(t) {
+  const cont = $('#apu');
+  const r = resumenDe(t);
+  const nivel = Math.min(t.nivel, 7);
+  let h = miga(t) + `<div class="cabpartida rt-cab" style="--c:var(--nivel-${nivel})"><div><div class="it">Título ${esc(t.item)} · nivel ${t.nivel}</div><h1>${esc(t.descripcion)}</h1><div class="chips">` +
+    `<span><b>${r.partidas.length.toLocaleString('es-PE')}</b> partidas</span>` +
+    (r.subtitulos ? `<span><b>${r.subtitulos.toLocaleString('es-PE')}</b> subtítulo${r.subtitulos === 1 ? '' : 's'}</span>` : '') +
+    (D.cd ? `<span><b>${(r.total / D.cd * 100).toFixed(1)} %</b> del costo directo</span>` : '') +
+    `</div></div><div class="pu"><div class="lbl">Total del título</div><div class="val"><small>S/</small>${f2(r.total)}</div>` +
+    `<div class="por">suma de los parciales de sus ${r.partidas.length.toLocaleString('es-PE')} partidas</div></div></div>`;
+  if (!r.partidas.length) { cont.innerHTML = h + `<div class="rt-vacio">Este título no tiene partidas.</div>`; return; }
+
+  // Gasto por categoría
+  const cats = CATS.concat([['sp', 'Subpartidas']]);
+  const max = Math.max(...cats.map(([c]) => r.cat[c]), 0.01);
+  const pct = c => r.suma ? r.cat[c] / r.suma * 100 : 0;
+  h += `<div class="rt-bloque"><h2>Gasto por categoría <small>Σ metrado × subtotal de la categoría en cada APU</small></h2>` +
+    `<div class="rt-barra">` + cats.filter(([c]) => r.cat[c] > 0).map(([c, n]) => `<i class="${c}" style="width:${pct(c).toFixed(3)}%" title="${n} ${pct(c).toFixed(1)} %"></i>`).join('') + `</div><div class="rt-cats">` +
+    cats.map(([c, n]) => { const v = r.cat[c], vacia = v <= 0;
+      return `<div class="rt-cat ${c}${vacia ? ' rt-sin' : ''}"><span class="pt"></span><span class="nm">${n}</span><span class="tr"><i style="width:${(v / max * 100).toFixed(2)}%"></i></span>` +
+        `<span class="sol">${vacia ? '—' : 'S/ ' + f2(v)}</span><span class="pc">${vacia ? 'sin uso' : pct(c).toFixed(1) + ' %'}</span></div>`; }).join('') + `</div>`;
+  const dif = Lector.r2(r.total - r.suma), ambar = Math.abs(dif) > 0.01 * r.partidas.length;
+  h += `<div class="rt-cierre${ambar ? ' ambar' : ''}"><span></span><span>Suma de categorías<span class="q" title="Cada partida redondea su parcial (metrado × P.U.) a 2 decimales; la suma por categorías no redondea partida por partida. Por eso pueden diferir unos céntimos.">?</span></span><span></span><span class="sol">S/ ${f2(r.suma)}</span><span></span>` +
+    (Math.abs(dif) < 0.005 ? `<span class="rt-redondeo">Cuadra con el total del título.</span>`
+      : ambar ? `<span class="rt-redondeo">Difiere <b>S/ ${f2(dif)}</b> del total del título: es más de lo que explica el redondeo de ${r.partidas.length.toLocaleString('es-PE')} partidas. Revise partidas sin APU o con P.U. distinto al de su APU.</span>`
+      : `<span class="rt-redondeo">Difiere <b>S/ ${f2(dif)}</b> del total del título por el redondeo a 2 decimales de cada una de las ${r.partidas.length.toLocaleString('es-PE')} partidas. No es un error: es el mismo redondeo que aplica Power Cost.</span>`) + `</div></div>`;
+
+  // Principales insumos
+  const top = r.lista.slice(0, 10), maxT = Math.max(...top.map(x => x.costo), 0.01);
+  const sumaTop = top.reduce((s, x) => s + x.costo, 0);
+  h += `<div class="rt-bloque"><h2>Principales insumos del título <small>los 10 de mayor costo</small></h2>` +
+    `<table class="rt-top"><thead><tr><th>#</th><th>Insumo</th><th>Und.</th><th class="num">Cantidad total</th><th class="num">Precio S/</th><th class="num">Costo S/</th><th class="num">% del título</th></tr></thead><tbody>` +
+    top.map((x, i) => `<tr class="${x.categoria}"><td class="n">${i + 1}</td><td class="ins"><div><span class="c"></span><button data-ins="${esc(x.k)}">${esc(x.descripcion)}</button></div></td>` +
+      `<td class="und" data-l="Und.">${esc(unidadVista(x.unidad))}</td><td class="num" data-l="Cantidad total">${x.porcentaje ? '—' : f2(x.cantidad)}</td>` +
+      `<td class="num" data-l="Precio S/">${x.porcentaje || x.precio == null ? '—' : f2(x.precio)}</td><td class="num cost" data-l="Costo S/">${f2(x.costo)}</td>` +
+      `<td class="pct"><div class="rt-mini"><i style="width:${(x.costo / maxT * 100).toFixed(1)}%"></i><span>${(x.costo / r.total * 100).toFixed(1)} %</span></div></td></tr>`).join('') +
+    `</tbody><tfoot><tr><td colspan="7">Los 10 primeros suman S/ ${f2(sumaTop)}, el ${(sumaTop / r.total * 100).toFixed(1)} % del título.` +
+    (r.lista.length > 10 ? ` Los otros ${(r.lista.length - 10).toLocaleString('es-PE')} insumos, el ${(100 - sumaTop / r.total * 100).toFixed(1)} %.` : '') +
+    ` Las subpartidas se cuentan en sus insumos.</td></tr></tfoot></table></div>`;
+  h += `<div class="rt-acciones"><button class="btn" id="btnExpResumen">Exportar el resumen a Excel</button></div>`;
+  cont.innerHTML = h;
+  cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
+  cont.querySelectorAll('.rt-top td.ins button').forEach(b => b.addEventListener('click', () => dondeSeUsa(b.dataset.ins, null, t.item)));
+  $('#btnExpResumen').addEventListener('click', () => exportarResumen(t, r));
+}
+
+// Excel del resumen: categorías y todos los insumos del título.
+function exportarResumen(t, r) {
+  const wb = XLSX.utils.book_new();
+  const cab = [[`Resumen del título ${t.item} ${t.descripcion}`], [D.encabezado.Proyecto || ''], [`Total del título`, r.total], [`Partidas`, r.partidas.length], []];
+  const cats = CATS.concat([['sp', 'Subpartidas']]);
+  const hoja1 = cab.concat([['Categoría', 'S/', '%']], cats.map(([c, n]) => [n, r.cat[c], r.suma ? Lector.r2(r.cat[c] / r.suma * 100) : 0]),
+    [['Suma de categorías', r.suma], ['Diferencia con el total (redondeo)', Lector.r2(r.total - r.suma)]]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hoja1), 'Categorías');
+  const hoja2 = [['#', 'Código', 'Insumo', 'Categoría', 'Und.', 'Cantidad total', 'Precio S/', 'Costo S/', '% del título', 'Partidas']].concat(
+    r.lista.map((x, i) => [i + 1, x.codigo, x.descripcion, Lector.NOMBRE_CAT[x.categoria], x.unidad, x.porcentaje ? null : Lector.r2(x.cantidad),
+      x.porcentaje ? null : x.precio, x.costo, r.total ? Lector.r2(x.costo / r.total * 100) : 0, x.partidas.size]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hoja2), 'Insumos');
+  XLSX.writeFile(wb, `Resumen ${t.item} - ${t.descripcion.slice(0, 40).replace(/[\\/:*?"<>|]/g, '')}.xlsx`);
+}
+
+function dondeSeUsa(k, itemActual, dentro) {
   const ins = D.insumos[k]; if (!ins) return;
   const precios = [...new Set(ins.usos.map(u => u.precio).filter(p => p != null))];
   const cat = Lector.NOMBRE_CAT[ins.categoria].toLowerCase();
   const u = unidadVista(ins.unidad);
   $('#usosTitulo').textContent = `${ins.descripcion} · ${ins.codigo}`;
-  const usos = ins.usos.slice().sort((x, y) => x.item.localeCompare(y.item, 'es', { numeric: true }));
+  const usos = ins.usos.filter(u => !dentro || u.item.startsWith(dentro + '.')).sort((x, y) => x.item.localeCompare(y.item, 'es', { numeric: true }));
   const max = 400;
-  let h = `<div class="res">Precio <b>S/ ${precios.map(f2).join(' / ')}</b> por ${esc(u)} · en <b>${usos.length.toLocaleString('es-PE')}</b> de ${D.apus.length.toLocaleString('es-PE')} partidas · ${cat}</div>`;
+  let h = `<div class="res">Precio <b>S/ ${precios.map(f2).join(' / ')}</b> por ${esc(u)} · en <b>${usos.length.toLocaleString('es-PE')}</b> ${dentro ? `partidas del título ${esc(dentro)} (${ins.usos.length.toLocaleString('es-PE')} en todo el proyecto)` : `de ${D.apus.length.toLocaleString('es-PE')} partidas`} · ${cat}</div>`;
   if (precios.length > 1) h += `<p style="color:var(--rojo);font-size:var(--t-aux);margin:0 0 8px">Ojo: este insumo tiene ${precios.length} precios distintos; en el presupuesto el precio de un insumo debe ser único.</p>`;
   h += `<p style="margin:8px 0 0;color:var(--gris);font-size:var(--t-aux)">Ordenadas por ítem, con la cantidad por unidad de partida. Clic para ir a la partida.</p><ul class="usos">`;
   usos.slice(0, max).forEach(x => {
