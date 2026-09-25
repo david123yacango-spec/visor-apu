@@ -169,6 +169,15 @@ table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
 .peso .ley span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c);margin-right:6px}
 .peso .ley b{font-family:var(--f-datos);font-weight:600;color:var(--tinta)}
 .mo{--c:var(--mo);--t:var(--mo-tinte)}.mat{--c:var(--mat);--t:var(--mat-tinte)}.eq{--c:var(--eq);--t:var(--eq-tinte)}.sc{--c:var(--sc);--t:var(--sc-tinte)}
+.sp{--c:var(--nivel-7);--t:var(--superficie-2)}
+td.ins .versp{all:unset;cursor:pointer;margin-left:8px;font-size:var(--t-aux);color:var(--azul);white-space:nowrap}
+td.ins .versp:hover{text-decoration:underline}
+.cajon table.mini{width:100%;border-collapse:collapse;font-size:var(--t-aux);margin:4px 0 12px}
+.cajon table.mini td{padding:4px 4px;border-bottom:1px solid var(--linea);vertical-align:top}
+.cajon table.mini td.num{font-family:var(--f-datos)}
+.cajon table.mini tr.cuenta td{background:var(--t);color:var(--tinta-2);font-family:var(--f-datos);font-size:11px}
+.cajon h3{font-size:var(--t-tabla);margin:12px 0 0;color:var(--c)}
+.cajon h3 small{color:var(--gris);font-weight:400;font-family:var(--f-datos)}
 .herrapu{display:flex;gap:12px;align-items:center;padding:0 16px 12px;font-size:var(--t-aux);color:var(--gris);flex-wrap:wrap}
 .herrapu label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--tinta-2)}
 .cat{border-top:1px solid var(--linea)}
@@ -242,8 +251,13 @@ tr.subtotal td:first-child{color:var(--c)}
 .cajon .usos li.aqui{background:var(--azul-tinte)}
 .cajon .usos .it{font-family:var(--f-datos);color:var(--gris)}
 .cajon .usos .q{font-family:var(--f-datos);color:var(--tinta);white-space:nowrap}
-.cajon .res{background:var(--mo-tinte);border-radius:var(--radio);padding:10px 12px;margin-bottom:8px}
-.cajon .res b{font-family:var(--f-datos);font-weight:600}
+.cajon .cuerpo > .res{background:var(--mo-tinte);border-radius:var(--radio);padding:10px 12px;margin-bottom:8px}
+.cajon .cuerpo > .res b{font-family:var(--f-datos);font-weight:600}
+.cajon tr.cuenta .res{color:var(--tinta);font-weight:600}
+.cajon tr.cuenta .f{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cajon tr.cuenta .r{display:inline-block;font-size:10px;padding:0 5px;border-radius:999px;border:1px solid var(--linea-fuerte);color:var(--gris)}
+.cajon tr.cuenta .flecha,.cajon tr.cuenta .igual{color:var(--gris)}
+.cajon tr.cuenta .fin{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
 .velo{position:fixed;inset:0;background:rgba(17,21,25,.35);z-index:19;display:none}
 .velo.abierto{display:block}
 footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--t-aux);color:var(--gris);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -420,6 +434,8 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
       <dt id="ay-precio">Precio</dt><dd>Precio del insumo, único en todo el presupuesto. En %MO el precio es el subtotal de mano de obra de esta partida.</dd>
       <dt id="ay-parcial">Parcial</dt><dd><span class="datos">cantidad × precio</span>, redondeado a 2 decimales línea por línea. Los subtotales suman parciales ya redondeados.</dd>
       <dt id="ay-pu">P.U.</dt><dd>Suma de los cuatro subtotales. <span class="datos">Metrado × P.U.</span> es el parcial de la partida, que sube a su título.</dd>
+      <dt id="ay-porcentajes">%MO · %MT</dt><dd>Porcentajes: <span class="datos">%MO</span> sobre el subtotal de mano de obra (herramientas manuales) y <span class="datos">%MT</span> sobre los demás materiales de la partida (materiales varios, accesorios).</dd>
+      <dt id="ay-subpartidas">Subpartidas</dt><dd>Un APU dentro de otro, con código «SP». Su costo unitario es el precio de la línea. Clic en «ver su APU» para ver cómo se forma.</dd>
       <dt id="ay-redondeo">R2 · R4</dt><dd>Marcan dónde se redondea: a 2 decimales (soles) y a 4 (cantidades), siempre mitad hacia arriba.</dd>
     </dl>
   </div>
@@ -446,6 +462,8 @@ const fn = x => x == null ? '' : String(+x.toFixed(6));                   // 0.1
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const leer = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const CATS = [['mo', 'Mano de obra'], ['mat', 'Materiales'], ['eq', 'Equipo'], ['sc', 'Subcontratos']];
+// Las cuatro de siempre y, si el APU las trae, las subpartidas (Power Cost las pone al final).
+const catsDe = a => a.lineas.some(l => l.categoria === 'sp') || a.subtotales.sp ? CATS.concat([['sp', 'Subpartidas']]) : CATS;
 
 // ─────────── tema ───────────
 function tema() {
@@ -910,9 +928,9 @@ function cuenta(l, apu) {
     tramos.push(`<span>${base}</span>${eq}` + (cerca(bruto, l.cantidad) ? `<span class="res">${f4(l.cantidad)} ${esc(u)}</span>`
       : `<span>${+bruto.toFixed(8)}</span><span class="fin">${fl}<span class="res">${f4(l.cantidad)} ${esc(u)}</span>${R4}</span>`));
   }
-  if (l.tipo === 'pmo') {
+  if (l.tipo === 'pmo' || l.tipo === 'pmt') {
     const bruto = (l.cantidad || 0) * l.calcPrecio / 100;
-    tramos.push(`<span>${fn(l.cantidad)} % × S/ ${f2(l.calcPrecio)} (mano de obra)</span>${eq}` + (cerca(bruto, l.parcial) ? `<span class="res">S/ ${f2(l.parcial)}</span>`
+    tramos.push(`<span>${fn(l.cantidad)} % × S/ ${f2(l.calcPrecio)} (${l.tipo === 'pmo' ? 'mano de obra' : 'demás materiales'})</span>${eq}` + (cerca(bruto, l.parcial) ? `<span class="res">S/ ${f2(l.parcial)}</span>`
       : `<span>${+bruto.toFixed(6)}</span><span class="fin">${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}</span>`));
   } else {
     const bruto = (l.cantidad || 0) * (l.precio || 0);
@@ -926,8 +944,8 @@ function cuenta(l, apu) {
 
 const AYUDA_COL = {
   cuadrilla: 'Personas de ese oficio en la cuadrilla. 0.1 = un capataz que atiende 10 cuadrillas',
-  cantidad: { mo: 'hh por unidad de partida = cuadrilla × 8 h ÷ rendimiento', eq: 'Horas de máquina por unidad = cuadrilla × 8 h ÷ rendimiento; o la cantidad escrita', mat: 'Lo que consume una unidad de partida; en materiales incluye el desperdicio', sc: 'Cantidad del subcontrato por unidad de partida' },
-  precio: 'Precio del insumo, único en todo el presupuesto; en %MO es el subtotal de mano de obra',
+  cantidad: { mo: 'hh por unidad de partida = cuadrilla × 8 h ÷ rendimiento', eq: 'Horas de máquina por unidad = cuadrilla × 8 h ÷ rendimiento; o la cantidad escrita', mat: 'Lo que consume una unidad de partida; en materiales incluye el desperdicio', sc: 'Cantidad del subcontrato por unidad de partida', sp: 'Cuánto de la subpartida entra en una unidad de esta partida (por ejemplo, m³ de cimiento por cartel)' },
+  precio: 'Precio del insumo, único en todo el presupuesto; en %MO es el subtotal de mano de obra, en %MT el de los demás materiales y en una subpartida su costo unitario',
 };
 function q(txt, entrada) { return `<button class="q" title="${esc(txt)}" onclick="abrirComo('${entrada}')" aria-label="Ayuda">?</button>`; }
 
@@ -948,6 +966,7 @@ function pintarApu(f) {
     return;
   }
   const cu = a.cu ?? a.calcCu;
+  const cats = catsDe(a);
   const sub = c => a.subtotales[c] ?? a.calcSubtotales[c] ?? 0;
   const pct = c => cu ? sub(c) / cu * 100 : 0;
   const cuadrilla = a.lineas.filter(l => l.categoria === 'mo' && l.cuadrilla != null)
@@ -959,15 +978,15 @@ function pintarApu(f) {
     (a.rendimiento ? `<span>Rendimiento <b>${f4(a.rendimiento)} ${esc(a.unidad)}/día</b></span>` : `<span>Rendimiento <b>—</b></span>`) +
     (cuadrilla ? `<span>Cuadrilla <b>${cuadrilla}</b></span>` : '') +
     (f.metrado != null ? `<span>Metrado <b>${f2(f.metrado)} ${esc(f.unidad)}</b></span>` : '') +
-    `</div></div><div class="pu"><div class="lbl">Precio unitario</div><div class="val"><small>S/</small>${f2(cu)}</div><div class="por">por ${esc(f.unidad || a.unidad)} · suma de las cuatro categorías</div></div></div>`;
+    `</div></div><div class="pu"><div class="lbl">Precio unitario</div><div class="val"><small>S/</small>${f2(cu)}</div><div class="por">por ${esc(f.unidad || a.unidad)} · suma de ${cats.length === 5 ? 'las cinco categorías' : 'las cuatro categorías'}</div></div></div>`;
   if (a.diferencias.length) h += `<div class="revisar">Al rehacer las cuentas no cierra: ${esc(a.diferencias.slice(0, 4).join(' · '))}. Revise este APU en el programa.</div>`;
   if (f.precio != null && Math.abs(f.precio - cu) > 0.005) h += `<div class="revisar">El presupuesto usa P.U. S/ ${f2(f.precio)} y el APU da S/ ${f2(cu)}.</div>`;
   // barra de peso
-  h += `<div class="peso"><div class="barra">` + CATS.filter(([c]) => sub(c) > 0).map(([c, n]) => `<i class="${c}" style="width:${pct(c).toFixed(2)}%" title="${n} ${pct(c).toFixed(2)} %"></i>`).join('') +
-    `</div><div class="ley">` + CATS.map(([c, n]) => `<span class="${c}">${n} <b>${f2(sub(c))}</b>${sub(c) > 0 ? ` · ${pct(c).toFixed(1)} %` : ''}</span>`).join('') + `</div></div>`;
+  h += `<div class="peso"><div class="barra">` + cats.filter(([c]) => sub(c) > 0).map(([c, n]) => `<i class="${c}" style="width:${pct(c).toFixed(2)}%" title="${n} ${pct(c).toFixed(2)} %"></i>`).join('') +
+    `</div><div class="ley">` + cats.map(([c, n]) => `<span class="${c}">${n} <b>${f2(sub(c))}</b>${sub(c) > 0 ? ` · ${pct(c).toFixed(1)} %` : ''}</span>`).join('') + `</div></div>`;
   h += `<div class="herrapu"><span>«Ver cálculo»: de dónde sale cada número</span><span>·</span><span>Clic en una línea: su cálculo</span><span>·</span><span>Clic en un insumo: dónde más se usa</span></div>`;
   // categorías
-  CATS.forEach(([c, n]) => {
+  cats.forEach(([c, n]) => {
     const ls = a.lineas.filter(l => l.categoria === c);
     const extra = c === 'mo' && ls.length && ls.every(l => /^hh$/i.test(l.unidad)) ? ' · en hh' : '';
     const enc = ls.length > 0 && calculoEn.has(c);
@@ -977,13 +996,13 @@ function pintarApu(f) {
     if (!ls.length) { h += `<div class="vacia">Esta partida no tiene ${n.toLowerCase()}.</div></section>`; return; }
     h += `<table class="lineas"><thead><tr><th>Código</th><th>Insumo</th><th>Und.</th>` +
       `<th class="num">Cuadrilla${c === 'mo' || c === 'eq' ? ' ' + q(AYUDA_COL.cuadrilla, 'cuadrilla') : ''}</th>` +
-      `<th class="num">Cantidad ${q(AYUDA_COL.cantidad[c], 'cantidad')}</th><th class="num">Precio S/${c === 'eq' && ls.some(l => l.tipo === 'pmo') ? ' ' + q(AYUDA_COL.precio, 'precio') : ''}</th><th class="num">Parcial S/</th></tr></thead><tbody>`;
+      `<th class="num">Cantidad ${q(AYUDA_COL.cantidad[c], 'cantidad')}</th><th class="num">Precio S/${ls.some(l => l.tipo === 'pmo' || l.tipo === 'pmt' || l.subpartida) ? ' ' + q(AYUDA_COL.precio, 'precio') : ''}</th><th class="num">Parcial S/</th></tr></thead><tbody>`;
     ls.forEach(l => {
       const k = l.codigo + '|' + l.descripcion;
       const dif = Math.abs(l.calcParcial - (l.parcial || 0)) > 0.005;
-      h += `<tr class="linea${dif ? ' dif' : ''}"><td class="cod">${esc(l.codigo)}</td><td class="ins"><button data-ins="${esc(k)}">${esc(l.descripcion)}</button></td>` +
+      h += `<tr class="linea${dif ? ' dif' : ''}"><td class="cod">${esc(l.codigo)}</td><td class="ins"><button data-ins="${esc(k)}"${l.subpartida ? ` data-sp="${esc(l.codigo)}"` : ''}>${esc(l.descripcion)}</button>${l.subpartida ? `<button class="versp" data-sp="${esc(l.codigo)}">ver su APU ›</button>` : ''}</td>` +
         `<td class="und" data-l="Und.">${esc(unidadVista(l.unidad))}</td><td class="num${l.cuadrilla == null ? ' sinvalor' : ''}" data-l="Cuadrilla">${fn(l.cuadrilla)}</td>` +
-        `<td class="num" data-l="Cantidad">${f4(l.cantidad)}</td><td class="num" data-l="Precio S/">${f2(l.tipo === 'pmo' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num par" data-l="Parcial S/">${f2(l.parcial)}</td></tr>` +
+        `<td class="num" data-l="Cantidad">${f4(l.cantidad)}</td><td class="num" data-l="Precio S/">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num par" data-l="Parcial S/">${f2(l.parcial)}</td></tr>` +
         `<tr class="cuenta"><td colspan="7">${cuenta(l, a)}</td></tr>`;
     });
     const suma = ls.length <= 4 ? `${n} · ${ls.map(l => f2(l.parcial)).join(' + ')}` : `${n} · suma de los ${ls.length} parciales`;
@@ -991,7 +1010,7 @@ function pintarApu(f) {
   });
   // cierre
   const parcial = f.metrado != null ? Lector.r2(f.metrado * cu) : null;
-  h += `<div class="cierre"><div class="ec">` + CATS.map(([c]) => `<span class="k ${c}"><b>${f2(sub(c))}</b></span>`).join('<span class="igual">+</span>') +
+  h += `<div class="cierre"><div class="ec">` + cats.map(([c]) => `<span class="k ${c}"><b>${f2(sub(c))}</b></span>`).join('<span class="igual">+</span>') +
     `<span class="igual">=</span><span class="total">S/ ${f2(cu)}</span><span class="k">por ${esc(f.unidad || a.unidad)} · el precio unitario</span></div>`;
   if (parcial != null) h += `<div class="ec"><span class="k">Metrado <b style="color:var(--tinta)">${f2(f.metrado)} ${esc(f.unidad)}</b></span><span class="igual">×</span>` +
     `<span class="k">P.U. <b style="color:var(--tinta)">S/ ${f2(cu)}</b></span><span class="igual">=</span><span class="total ok">S/ ${f2(parcial)}</span><span class="k">parcial de la partida</span></div>`;
@@ -1010,7 +1029,7 @@ function pintarApu(f) {
     if (e.target.closest('td.ins button')) return;
     const cu = tr.nextElementSibling; if (cu && cu.classList.contains('cuenta')) cu.classList.toggle('abierta');
   }));
-  cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => dondeSeUsa(b.dataset.ins, f.item)));
+  cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => b.dataset.sp ? verSubpartida(b.dataset.sp) : dondeSeUsa(b.dataset.ins, f.item)));
   cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
 }
 
@@ -1047,6 +1066,30 @@ function otrosCampamentos(f) {
 }
 
 if (leer('visor.correo')) alEntrar();
+
+// APU de una subpartida («SP 11884»), en el cajón lateral, con la cuenta de cada línea.
+function verSubpartida(codigo) {
+  const s = D.subpartidas?.[codigo]; if (!s) return;
+  const cu = s.cu ?? s.calcCu;
+  const usan = D.apus.filter(a => a.lineas.some(l => l.codigo === codigo));
+  $('#usosTitulo').textContent = `${s.descripcion} · ${codigo}`;
+  let h = `<div class="res">Subpartida · P.U. <b>S/ ${f2(cu)}</b> por ${esc(s.unidad)}` + (s.rendimiento ? ` · rendimiento <b>${f4(s.rendimiento)} ${esc(s.unidad)}/día</b>` : '') +
+    ` · se usa en <b>${usan.length}</b> partida${usan.length === 1 ? '' : 's'}</div>` +
+    `<p style="margin:8px 0 0;color:var(--gris);font-size:var(--t-aux)">Una subpartida es un APU dentro de otro: su costo unitario entra como precio de la línea «${esc(codigo)}».</p>`;
+  catsDe(s).forEach(([c, n]) => {
+    const ls = s.lineas.filter(l => l.categoria === c); if (!ls.length) return;
+    const st = s.subtotales[c] ?? s.calcSubtotales[c] ?? 0;
+    h += `<div class="${c}"><h3>${n} <small>S/ ${f2(st)}</small></h3><table class="mini">` + ls.map(l =>
+      `<tr><td>${esc(l.descripcion)} <span style="color:var(--gris)">${esc(unidadVista(l.unidad))}</span></td><td class="num">${f4(l.cantidad)}</td><td class="num">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num"><b>${f2(l.parcial)}</b></td></tr>` +
+      `<tr class="cuenta"><td colspan="4">${cuenta(l, s)}</td></tr>`).join('') + `</table></div>`;
+  });
+  h += `<p style="font-size:var(--t-aux);color:var(--gris);margin:0 0 4px">Partidas que la usan:</p><ul class="usos">` +
+    usan.map(a => { const fi = porItemFila[a.item]; const l = a.lineas.find(x => x.codigo === codigo);
+      return `<li data-ir="${fi}"><span class="it">${esc(a.item)}</span><span>${esc(a.descripcion)}</span><span class="q">${f4(l.cantidad)} ${esc(l.unidad)}</span></li>`; }).join('') + `</ul>`;
+  $('#usosCuerpo').innerHTML = h;
+  $('#usosCuerpo').querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => { cerrar(); irA(+x.dataset.ir); }));
+  abrir('usos'); $('#usosCuerpo').scrollTop = 0;
+}
 
 function dondeSeUsa(k, itemActual) {
   const ins = D.insumos[k]; if (!ins) return;

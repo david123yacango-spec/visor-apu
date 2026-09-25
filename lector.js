@@ -1,7 +1,8 @@
 /*
  * Lector de los Excel de exportación de Power Cost / vidBIM Costos (mismo formato):
- *   · «Análisis de Costos Unitarios» (hoja SP1): un bloque por partida.
- *   · «Presupuesto» (hoja SP1): ítems desde la fila 10.
+ *   · «Análisis de Costos Unitarios» (hoja SP1, SP4…): un bloque por partida y, si las hay, los bloques
+ *     «Sub Partida» con el APU de cada subpartida.
+ *   · «Presupuesto» (hoja SP1, SP4…): ítems desde la fila 10.
  * Recibe el libro ya abierto con SheetJS (XLSX.read). Todo pasa en el navegador.
  * Mismas reglas que vidBIM Costos (Nucleo/PowerCost/ImportadorPowerCost.cs y el motor).
  */
@@ -9,9 +10,10 @@
   'use strict';
 
   var CATEGORIAS = {
-    'Mano de Obra': 'mo', 'Materiales': 'mat', 'Equipo': 'eq', 'Subcontratos': 'sc', 'Servicios': 'sc'
+    'Mano de Obra': 'mo', 'Materiales': 'mat', 'Equipo': 'eq', 'Subcontratos': 'sc', 'Servicios': 'sc', 'Sub partidas': 'sp', 'Subpartidas': 'sp'
   };
-  var NOMBRE_CAT = { mo: 'Mano de obra', mat: 'Materiales', eq: 'Equipo', sc: 'Subcontratos' };
+  var NOMBRE_CAT = { mo: 'Mano de obra', mat: 'Materiales', eq: 'Equipo', sc: 'Subcontratos', sp: 'Subpartidas' };
+  var RX_SUB = /^Sub\s*Partida\s+(\S+)/i;
   var RX_REND = /^\s*([\d,]+(?:\.\d+)?)?\s*-?\s*(.*?)\s*\/\s*DIA\s*$/i;
   var RX_CU = /Costo Unitario por\s+(.*?)\s*:/i;
   var RX_ITEM = /^\d+(\.\d+)*$/;
@@ -41,23 +43,39 @@
   }
   function usadas(f) { var n = []; for (var j = 0; j < f.length; j++) if (f[j] != null) n.push(j); return n; }
 
+  var ETIQUETAS = ['Proyecto', 'Sub Presupuesto', 'Cliente', 'Ubicación', 'Costo a'];
   function encabezado(filas, hasta) {
-    var e = {};
+    var e = {}, ultima = null, colValor = -1;
     for (var r = 0; r < Math.min(hasta, filas.length); r++) {
-      var f = filas[r];
+      var f = filas[r], hubo = false;
       for (var c = 0; c < f.length; c++) {
         if (typeof f[c] !== 'string') continue;
         var k = f[c].trim().replace(/:$/, '').trim();
-        if (['Proyecto', 'Sub Presupuesto', 'Cliente', 'Ubicación', 'Costo a'].indexOf(k) < 0) continue;
-        for (var d = c + 1; d < f.length; d++) if (f[d] != null) { e[k] = String(f[d]).trim(); break; }
+        if (ETIQUETAS.indexOf(k) < 0) continue;
+        hubo = true;
+        for (var d = c + 1; d < f.length; d++) if (f[d] != null) { e[k] = String(f[d]).trim(); if (c === 0) { ultima = k; colValor = d; } break; }
       }
+      // Un nombre largo sigue en la fila de abajo, en la misma columna y sin etiqueta.
+      if (!hubo && ultima && colValor >= 0 && typeof f[colValor] === 'string' && f.filter(function (v) { return v != null; }).length === 1)
+        e[ultima] += ' ' + f[colValor].trim();
+      else if (hubo || f.some(function (v) { return v != null; })) ultima = hubo ? ultima : null;
     }
     return e;
   }
 
+  /** La hoja de datos: SP1, SP4… (la primera «SPn» que traiga el título), o la primera hoja. */
+  function hojaDe(XLSX, wb) {
+    var nombres = wb.SheetNames.filter(function (n) { return /^SP\d+$/i.test(n); });
+    for (var i = 0; i < nombres.length; i++) {
+      var filas = filasDe(XLSX, wb.Sheets[nombres[i]]).slice(0, 15);
+      if (filas.some(function (f) { return f.some(function (v) { return typeof v === 'string' && /(An.lisis de Costos Unitarios|^\s*Presupuesto\b)/i.test(v); }); })) return wb.Sheets[nombres[i]];
+    }
+    return nombres.length ? wb.Sheets[nombres[0]] : wb.Sheets[wb.SheetNames[0]];
+  }
+
   /** ¿Qué es este libro? 'apu', 'presupuesto' o null. */
   function tipoDe(XLSX, wb) {
-    var ws = wb.Sheets.SP1;
+    var ws = hojaDe(XLSX, wb);
     if (!ws) return null;
     var filas = filasDe(XLSX, ws).slice(0, 15);
     for (var r = 0; r < filas.length; r++) {
@@ -68,21 +86,32 @@
     return null;
   }
 
-  /** APU: lista de { item, descripcion, unidad, rendimiento, rendTexto, lineas[], subtotales{cat}, cu } */
+  /**
+   * APU: lista de { item, descripcion, unidad, rendimiento, rendTexto, lineas[], subtotales{cat}, cu } y las
+   * subpartidas por código («SP 11884» → su APU, con el mismo formato).
+   */
   function leerApu(XLSX, wb) {
-    var filas = filasDe(XLSX, wb.Sheets.SP1);
-    var apus = [], cur = null, cat = null;
+    var filas = filasDe(XLSX, hojaDe(XLSX, wb));
+    var apus = [], subpartidas = {}, cur = null, cat = null;
+    function nuevo(r, item, descripcion, rendTexto) {
+      var a = { fila: r + 1, item: item, descripcion: descripcion, rendTexto: rendTexto, unidad: '', rendimiento: null, lineas: [], subtotales: {}, cu: null };
+      var m = RX_REND.exec(rendTexto);
+      if (m) { if (m[1]) a.rendimiento = parseFloat(m[1].replace(/,/g, '')); a.unidad = (m[2] || '').trim(); }
+      return a;
+    }
     for (var r = 0; r < filas.length; r++) {
-      var f = filas[r], a0 = txt(f, 0);
+      var f = filas[r], a0 = txt(f, 0), b1 = txt(f, 1);
       if (a0 === 'Partida') {
-        cur = { fila: r + 1, item: (txt(f, 1) || '').trim(), descripcion: (txt(f, 3) || '').trim(), rendTexto: (txt(f, 9) || '').trim(),
-                unidad: '', rendimiento: null, lineas: [], subtotales: {}, cu: null };
-        var m = RX_REND.exec(cur.rendTexto);
-        if (m) {
-          if (m[1]) cur.rendimiento = parseFloat(m[1].replace(/,/g, ''));
-          cur.unidad = (m[2] || '').trim();
-        }
+        cur = nuevo(r, (b1 || '').trim(), (txt(f, 3) || '').trim(), (txt(f, 9) || '').trim());
         apus.push(cur); cat = null; continue;
+      }
+      var ms = b1 && !a0 ? RX_SUB.exec(b1.trim()) : null;
+      if (ms) {
+        // Bloque «Sub Partida 11884»: el APU de la línea «SP 11884» de las partidas. Se repite por cada partida que la usa.
+        cur = nuevo(r, 'SP ' + ms[1], (txt(f, 3) || '').trim(), (txt(f, 9) || '').trim());
+        cur.esSubpartida = true;
+        if (!subpartidas[cur.item]) subpartidas[cur.item] = cur;
+        cat = null; continue;
       }
       if (!cur) continue;
       if (txt(f, 1) === 'Código') continue;
@@ -98,12 +127,12 @@
         });
       }
     }
-    return { encabezado: encabezado(filas, 10), apus: apus };
+    return { encabezado: encabezado(filas, 10), apus: apus, subpartidas: subpartidas };
   }
 
   /** Presupuesto: lista de { item, descripcion, unidad, metrado, precio, parcial, total, nivel, esPartida } */
   function leerPresupuesto(XLSX, wb) {
-    var filas = filasDe(XLSX, wb.Sheets.SP1), lista = [];
+    var filas = filasDe(XLSX, hojaDe(XLSX, wb)), lista = [];
     for (var r = 9; r < filas.length; r++) {
       var f = filas[r], item = (txt(f, 0) || '').trim();
       if (!RX_ITEM.test(item)) continue;
@@ -116,7 +145,7 @@
       if (!fila.esPartida) fila.total = fila.total != null ? fila.total : fila.subtotal;
       lista.push(fila);
     }
-    return { encabezado: encabezado(filas, 8), filas: lista };
+    return { encabezado: encabezado(filas, 9), filas: lista };
   }
 
   var TIEMPO = { hh: 1, hm: 1, he: 1 };
@@ -124,16 +153,19 @@
   /**
    * Explica cada línea del APU como lo calcula Power Cost, y comprueba lo que trae el Excel.
    * tipo: 'tiempo' (cuadrilla × 8 ÷ rendimiento), 'dia' (cuadrilla ÷ rendimiento), 'pmo' (% de la mano de obra),
-   *       'directa' (cantidad escrita).
+   *       'pmt' (% de los demás materiales), 'directa' (cantidad escrita).
    */
   function explicar(apu) {
     var mo = apu.subtotales.mo || 0, difs = [];
+    // Base del %MT: los materiales que no son porcentaje.
+    var mt = r2(apu.lineas.filter(function (l) { return l.categoria === 'mat' && l.unidad.toLowerCase() !== '%mt'; })
+                          .reduce(function (s, l) { return s + (l.parcial || 0); }, 0));
     apu.lineas.forEach(function (l) {
       var u = l.unidad.toLowerCase(), rend = apu.rendimiento;
-      if (u === '%mo') {
-        l.tipo = 'pmo';
-        l.calcPrecio = mo;
-        l.calcParcial = r2((l.cantidad || 0) * mo / 100);
+      if (u === '%mo' || u === '%mt') {
+        l.tipo = u === '%mo' ? 'pmo' : 'pmt';
+        l.calcPrecio = u === '%mo' ? mo : mt;
+        l.calcParcial = r2((l.cantidad || 0) * l.calcPrecio / 100);
       } else {
         if (TIEMPO[u] && rend && l.cuadrilla != null) { l.tipo = 'tiempo'; l.calcCantidad = r4(l.cuadrilla * 8 / rend); }
         else if (u === 'dia' && rend && l.cuadrilla != null) { l.tipo = 'dia'; l.calcCantidad = r4(l.cuadrilla / rend); }
@@ -161,6 +193,9 @@
   /** Junta presupuesto y APU por ítem; arma el árbol y los totales. */
   function armar(pre, apu) {
     var apus = apu ? apu.apus.map(explicar) : [];
+    var subpartidas = {};
+    if (apu && apu.subpartidas) Object.keys(apu.subpartidas).forEach(function (k) { subpartidas[k] = explicar(apu.subpartidas[k]); });
+    apus.forEach(function (a) { a.lineas.forEach(function (l) { if (l.categoria === 'sp') l.subpartida = subpartidas[l.codigo] || null; }); });
     var porItem = {};
     apus.forEach(function (a) { porItem[a.item] = a; });
     var filas = pre ? pre.filas : apus.map(function (a) {
@@ -188,7 +223,7 @@
     var cdTitulos = pre ? r2(filas.filter(function (f) { return !f.esPartida && f.nivel === 1; }).reduce(function (s, f) { return s + (f.total || 0); }, 0)) : null;
     return {
       encabezado: Object.assign({}, apu ? apu.encabezado : {}, pre ? pre.encabezado : {}),
-      filas: filas, apus: apus, porItem: porItem, insumos: insumos, cd: cd, cdTitulos: cdTitulos, avisos: avisos,
+      filas: filas, apus: apus, porItem: porItem, insumos: insumos, subpartidas: subpartidas, cd: cd, cdTitulos: cdTitulos, avisos: avisos,
       conDiferencias: apus.filter(function (a) { return a.diferencias.length; })
     };
   }
