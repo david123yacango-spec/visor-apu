@@ -97,14 +97,26 @@ button{font:inherit;cursor:pointer}
 .panel{background:var(--superficie);border:1px solid var(--linea);border-radius:var(--radio);min-width:0}
 
 /* ─ presupuesto (como la ventana de VidBIM Costos) ─ */
-.pres{position:sticky;top:16px;height:calc(100vh - var(--cabecera-alto) - 32px);max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.pres{position:sticky;top:16px;height:calc(100vh - var(--sobre-pres, 56px) - 32px);min-height:420px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}
 .pres .herr{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--linea);flex-wrap:wrap}
 .pres input{flex:1;min-width:180px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:6px 10px;background:var(--superficie);color:var(--tinta);font:inherit;font-size:var(--t-tabla)}
 .pres input:focus{outline:2px solid var(--azul);outline-offset:-1px}
 .pres .herr .sep{width:1px;height:20px;background:var(--linea)}
+.niveles{display:inline-flex;align-items:center;border:1px solid var(--linea-fuerte);border-radius:var(--radio);overflow:hidden;font-size:var(--t-aux)}
+.niveles span{padding:0 8px;color:var(--gris)}
+.niveles button{border:0;border-left:1px solid var(--linea);background:var(--superficie);color:var(--tinta-2);padding:4px 9px;font-family:var(--f-datos);font-size:var(--t-aux)}
+.niveles button:hover{background:var(--superficie-3)}
+.niveles button.activo{background:var(--azul-tinte);color:var(--azul);font-weight:600}
+.frente{max-width:280px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:5px 8px;background:var(--superficie);color:var(--tinta);font:inherit;font-size:var(--t-aux)}
+.frente.activo{border-color:var(--azul);color:var(--azul);background:var(--azul-tinte)}
+.cdfija{padding:6px 12px;border-bottom:2px solid var(--linea-fuerte);font-size:var(--t-aux);color:var(--tinta-2);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.cdfija b{font-family:var(--f-datos);font-size:var(--t-tabla);color:var(--azul);font-weight:600}
+.cdfija .de{font-weight:600;color:var(--tinta)}
+.cdfija small{color:var(--gris);font-family:var(--f-datos)}
 .pres .scroll{overflow:auto;flex:1;min-height:0}
 table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
-.grilla th{position:sticky;top:0;background:var(--superficie-2);font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;z-index:1}
+.grilla thead{position:sticky;top:0;z-index:2}
+.grilla th{background:var(--superficie-2);font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;z-index:1}
 .grilla th.num{text-align:right}
 .grilla td{padding:4px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;height:30px}
 .grilla td.de{overflow:hidden;text-overflow:ellipsis;max-width:0;width:100%}
@@ -259,6 +271,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .pestanas{padding:8px 12px 0}
   .pestanas .pe{max-width:220px}
   .pres .ayuda{display:none}
+  .frente{max-width:100%;flex:1}
   .pres input{min-width:0;flex-basis:100%}
   .grilla{table-layout:fixed}
   .grilla .oc{display:none}
@@ -366,10 +379,11 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
     <div class="herr">
       <input type="search" id="buscar" placeholder="Buscar partida o ítem…  (cartel, 01.01.01, guardian)" aria-label="Buscar">
       <span class="sep"></span>
-      <button class="btn chico" id="btnExpandir">Expandir todo</button>
-      <button class="btn chico texto" id="btnContraer">Contraer</button>
-      <span class="ayuda">↑ ↓ mueven · Enter abre el APU · ← → pliegan</span>
+      <div class="niveles" id="niveles" role="group" aria-label="Abrir hasta el nivel"></div>
+      <select class="frente" id="frente" aria-label="Frente de trabajo"><option value="">Frente: todos</option></select>
+      <span class="ayuda">↑ ↓ mueven · Enter abre el APU · ← → pliegan · Shift+clic en ▸ abre todo lo de adentro</span>
     </div>
+    <div class="cdfija" id="filaCd"></div>
     <div class="scroll" id="scrollPres">
       <table class="grilla" id="grilla">
         <colgroup><col class="c-it"><col><col class="oc"><col class="oc"><col class="oc"><col class="c-par"><col class="c-tot"></colgroup>
@@ -629,7 +643,7 @@ async function quitar(id) {
   const p = proyectos.find(x => x.id === id); if (!p) return;
   if (!confirm(`¿Quitar «${etiqueta(p)}»${p.sub ? ' · ' + p.sub : ''} de este navegador? Para verlo otra vez tendrá que cargar sus Excel.`)) return;
   await Almacen.borrar(id).catch(() => {});
-  proyectos = proyectos.filter(x => x !== p); armados.delete(id); estados.delete(id); try { localStorage.removeItem('visor.pos.' + id); } catch (e) {}
+  proyectos = proyectos.filter(x => x !== p); armados.delete(id); estados.delete(id); try { localStorage.removeItem('visor.pos.' + id); localStorage.removeItem('visor.vista.' + id); } catch (e) {}
   if (activo === id) { activo = null; guardar('visor.activo', ''); if (proyectos.length) cambiarA(proyectos[proyectos.length - 1].id); else mostrarPortada(); }
   else { pintarPestanas(); pintarGuardados(); }
 }
@@ -705,9 +719,15 @@ function abrirTablero(p) {
   const e = D.encabezado;
   $('#pieInfo').textContent = [titleCase(e.Proyecto || ''), (e['Costo a'] || '').toLowerCase(), `${F.filter(f => f.esPartida).length.toLocaleString('es-PE')} partidas`, `${nIns.toLocaleString('es-PE')} insumos`].filter(Boolean).join(' · ');
   $('#pieCd').innerHTML = `Costo directo <b>S/ ${f2(D.cd)}</b>`;
+  let vista = {}; try { vista = JSON.parse(leer('visor.vista.' + p.id) || '{}'); } catch (x) {}
+  nivelVista = vista.nivel ?? null; frente = vista.frente || '';
   $('#chipsArchivos').innerHTML = `<span class="chip" title="${esc(p.archivos.presupuesto)}">Presupuesto · ${esc(p.archivos.presupuesto)}</span><span class="chip">APU · ${D.apus.length.toLocaleString('es-PE')} partidas</span>`;
   $('#portada').hidden = true; $('#tablero').hidden = false; $('#pieTablero').hidden = false; $('#btnCambiar').hidden = false; $('#pestanas').hidden = false;
   pintarPestanas();
+  pintarFrentes(); pintarCd();
+  if (nivelVista !== null) plegados = new Set(F.map((f, i) => !f.esPartida && f.tieneHijos && nivelVista > 0 && f.nivel >= nivelVista ? i : -1).filter(i => i >= 0));
+  pintarNiveles();
+  ajustarAlto();
   // Donde se quedó en este proyecto (o la primera partida).
   const est = estados.get(p.id) || { item: leer('visor.pos.' + p.id) };
   $('#buscar').value = '';
@@ -724,8 +744,9 @@ function refrescar() {
   let ocultoHasta = null;   // prefijo del título plegado que oculta a los de abajo
   let visibles = 0;
   F.forEach((f, i) => {
-    let oculta = false;
-    if (filtro) oculta = !filtro.has(i);
+    let oculta = !enFrente(f.item);
+    if (oculta) { /* fuera del frente elegido */ }
+    else if (filtro) oculta = !filtro.has(i);
     else {
       if (ocultoHasta && f.item.startsWith(ocultoHasta)) oculta = true; else ocultoHasta = null;
       if (!oculta && plegados.has(i)) ocultoHasta = f.item + '.';
@@ -737,17 +758,71 @@ function refrescar() {
   });
   $('#nadaPres').hidden = visibles > 0;
 }
-function plegar(i, si) { if (D.filas[i].esPartida || !D.filas[i].tieneHijos) return; if (si) plegados.add(i); else plegados.delete(i); refrescar(); }
+function plegar(i, si) {
+  if (D.filas[i].esPartida || !D.filas[i].tieneHijos) return;
+  if (si) plegados.add(i); else plegados.delete(i);
+  if (nivelVista !== null) { nivelVista = null; pintarNiveles(); guardarVista(); }
+  refrescar();
+}
+// Shift+clic en el triángulo: abre el título y todo lo que tiene adentro (o lo cierra entero).
+function plegarRama(i) {
+  const f = D.filas[i], pre = f.item + '.';
+  const abrir = plegados.has(i) || D.filas.some((g, j) => g.item.startsWith(pre) && plegados.has(j));
+  D.filas.forEach((g, j) => { if (j === i || g.item.startsWith(pre)) { if (!g.esPartida && g.tieneHijos) { if (abrir) plegados.delete(j); else plegados.add(j); } } });
+  if (!abrir) plegados.add(i);
+  if (nivelVista !== null) { nivelVista = null; pintarNiveles(); guardarVista(); }
+  refrescar();
+}
 function abrirAncestros(i) {
   const it = D.filas[i].item.split('.');
   for (let k = 1; k < it.length; k++) { const j = porItemFila[it.slice(0, k).join('.')]; if (j != null) plegados.delete(j); }
 }
-$('#btnExpandir').addEventListener('click', () => { plegados.clear(); refrescar(); });
-$('#btnContraer').addEventListener('click', () => {
-  D.filas.forEach((f, i) => { if (!f.esPartida && f.tieneHijos && f.nivel >= 1) plegados.add(i); });
-  if (sel >= 0) { /* deja visible el nivel 1 */ }
-  refrescar();
+// ── niveles (como los botones 1 2 3 de Excel) y frente de trabajo ──
+let nivelVista = null;   // null = a mano; 0 = todo; n = abiertos hasta el nivel n
+let frente = '';         // ítem del título de nivel 2 elegido ('' = todos)
+function enFrente(item) { return !frente || item === frente || item.startsWith(frente + '.') || frente.startsWith(item + '.'); }
+function verNivel(n) {
+  nivelVista = n;
+  plegados = new Set(D.filas.map((f, i) => !f.esPartida && f.tieneHijos && n > 0 && f.nivel >= n ? i : -1).filter(i => i >= 0));
+  pintarNiveles(); refrescar(); guardarVista();
+  $('#scrollPres').scrollTop = 0;
+}
+function pintarNiveles() {
+  const max = Math.min(7, Math.max(1, ...D.filas.filter(f => !f.esPartida).map(f => f.nivel)));
+  $('#niveles').innerHTML = '<span>Nivel</span>' + Array.from({ length: max }, (_, k) => k + 1).concat([0])
+    .map(n => `<button data-nivel="${n}" class="${nivelVista === n ? 'activo' : ''}" title="${n ? `Abrir hasta el nivel ${n}` : 'Abrir todo'}">${n || 'Todo'}</button>`).join('');
+  $('#niveles').querySelectorAll('button').forEach(b => b.addEventListener('click', () => verNivel(+b.dataset.nivel)));
+}
+function pintarFrentes() {
+  const fs = D.filas.filter(f => !f.esPartida && f.nivel === 2);
+  $('#frente').innerHTML = '<option value="">Frente: todos</option>' +
+    fs.map(f => `<option value="${esc(f.item)}">${esc(f.item)} ${esc(titleCase(f.descripcion))}</option>`).join('');
+  if (!fs.some(f => f.item === frente)) frente = '';
+  $('#frente').value = frente; $('#frente').classList.toggle('activo', !!frente);
+}
+$('#frente').addEventListener('change', e => {
+  frente = e.target.value; e.target.classList.toggle('activo', !!frente);
+  if (frente) { const j = porItemFila[frente]; if (j != null) { abrirAncestros(j); plegados.delete(j); } }
+  if ($('#buscar').value.trim()) buscar(); else refrescar();
+  guardarVista(); pintarCd();
+  $('#scrollPres').scrollTop = 0;
+  // Si la partida elegida quedó fuera del frente, se elige la primera de adentro.
+  if (sel >= 0 && !enFrente(D.filas[sel].item)) { const k = D.filas.findIndex(f => f.esPartida && enFrente(f.item)); if (k >= 0) seleccionar(k); }
 });
+function guardarVista() { if (activo) guardar('visor.vista.' + activo, JSON.stringify({ nivel: nivelVista, frente })); }
+function pintarCd() {
+  const t = frente ? D.filas[porItemFila[frente]] : null;
+  $('#filaCd').innerHTML = t
+    ? `<span class="de">${esc(t.item)} ${esc(titleCase(t.descripcion))}</span><b>S/ ${f2(t.total)}</b><small>de S/ ${f2(D.cd)} (${(t.total / D.cd * 100).toFixed(1)} %)</small>`
+    : `<span class="de">COSTO DIRECTO</span><b>S/ ${f2(D.cd)}</b>`;
+}
+// Alto del panel: lo que queda de pantalla bajo la cabecera y las pestañas.
+function ajustarAlto() {
+  const p = $('#tablero'); if (p.hidden) return;
+  const arriba = p.getBoundingClientRect().top + window.scrollY;
+  document.documentElement.style.setProperty('--sobre-pres', Math.max(0, arriba) + 'px');
+}
+window.addEventListener('resize', ajustarAlto);
 
 // ── búsqueda en vivo ──
 let tBuscar = 0;
@@ -760,7 +835,7 @@ function buscar() {
   const F = D.filas, vis = new Set();
   F.forEach((f, i) => {
     const t = sinTilde(f.item + ' ' + f.descripcion);
-    if (palabras.every(p => t.includes(p))) {
+    if (enFrente(f.item) && palabras.every(p => t.includes(p))) {
       vis.add(i);
       const it = f.item.split('.');
       for (let k = 1; k < it.length; k++) { const j = porItemFila[it.slice(0, k).join('.')]; if (j != null) vis.add(j); }
@@ -781,6 +856,7 @@ function seleccionar(i, mostrarApu = true) {
 }
 function irA(i, bajar = true) {
   if (filtro && !filtro.has(i)) { $('#buscar').value = ''; filtro = null; }
+  if (!enFrente(D.filas[i].item)) { frente = ''; pintarFrentes(); pintarCd(); guardarVista(); }
   abrirAncestros(i); refrescar(); seleccionar(i);
   filasDom[i].scrollIntoView({ block: 'center' });
   if (bajar && matchMedia('(max-width:1100px)').matches) $('#apu').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -788,7 +864,7 @@ function irA(i, bajar = true) {
 $('#cuerpoPres').addEventListener('click', e => {
   const tr = e.target.closest('tr'); if (!tr) return;
   const i = +tr.dataset.i;
-  if (e.target.classList.contains('pl')) { plegar(i, !plegados.has(i)); return; }
+  if (e.target.classList.contains('pl')) { if (e.shiftKey) plegarRama(i); else plegar(i, !plegados.has(i)); return; }
   seleccionar(i);
 });
 $('#cuerpoPres').addEventListener('dblclick', e => { const tr = e.target.closest('tr'); if (tr) plegar(+tr.dataset.i, !plegados.has(+tr.dataset.i)); });

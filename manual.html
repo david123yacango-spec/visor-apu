@@ -107,7 +107,7 @@ footer{max-width:880px;margin:0 auto;padding:0 16px 32px;font-size:var(--t-aux);
       <li><b>＋ Agregar proyecto</b> (al final de las pestañas; en el celular, el <b>＋</b> de la cabecera) lleva a la portada para cargar otros dos Excel.</li>
       <li>Si carga otra vez el mismo proyecto (mismo nombre y subpresupuesto), se <b>actualiza</b> en vez de repetirse: útil cuando exporta una versión nueva.</li>
       <li>La <b>✕</b> de una pestaña quita ese proyecto de este navegador. En la portada puede <b>Quitar</b> uno o <b>Borrar todos</b>.</li>
-      <li>Al volver otro día, el visor abre solo el último proyecto que usó. En otra computadora o en modo privado habrá que cargar los Excel de nuevo.</li>
+      <li>Al volver otro día, el visor abre solo el último proyecto que usó, con su nivel, frente y partida. En otra computadora o en modo privado habrá que cargar los Excel de nuevo.</li>
     </ul>
     <figure><img src="manual/2b-pestanas.png" alt="Pestañas de dos proyectos sobre el presupuesto" loading="lazy"><figcaption>Dos proyectos abiertos: una institución educativa y un centro de salud (ejemplos).</figcaption></figure>
     <figure class="chica"><img src="manual/2c-proyectos.png" alt="Portada con la lista de proyectos guardados" loading="lazy"><figcaption>En la portada, sus proyectos guardados: clic en uno para abrirlo.</figcaption></figure>
@@ -115,13 +115,16 @@ footer{max-width:880px;margin:0 auto;padding:0 16px 32px;font-size:var(--t-aux);
 
   <section class="paso" id="presupuesto">
     <header><span class="n">3</span><h2>Moverse en el presupuesto</h2></header>
-    <p>A la izquierda está el presupuesto, como en la ventana de VidBIM Costos: títulos en el color de su nivel, partidas con metrado, precio y parcial, y el <b>costo directo</b> abajo. Al elegir una partida, su APU aparece a la derecha.</p>
+    <p>A la izquierda está el presupuesto, como en la ventana de VidBIM Costos: títulos en el color de su nivel y partidas con metrado, precio y parcial. Encima de la tabla, siempre a la vista, va el <b>costo directo</b>. Al elegir una partida, su APU aparece a la derecha.</p>
     <ul>
       <li><b>Buscar:</b> escriba parte del nombre o del ítem (<code>pintura latex</code>, <code>01.03</code>); filtra al instante.</li>
-      <li><b>Plegar:</b> clic en el triángulo de un título, o <b>Expandir todo</b> / <b>Contraer</b>.</li>
+      <li><b>Nivel 1 2 3 … Todo:</b> como los botones de agrupar de Excel. <b>1</b> deja solo los títulos principales, <b>2</b> agrega los de segundo nivel, <b>3</b> los del tercero, y <b>Todo</b> abre todas las partidas.</li>
+      <li><b>Frente:</b> elija un frente de trabajo (un título de segundo nivel) para ver solo esa rama. Arriba sale su total y qué parte es del costo directo. Se combina con la búsqueda: «pintura» dentro de un solo frente.</li>
+      <li><b>Plegar:</b> clic en el triángulo de un título. Con <kbd>Shift</kbd>+clic se abre (o se cierra) el título con todo lo que tiene adentro.</li>
       <li><b>Teclado:</b> <kbd>↑</kbd> <kbd>↓</kbd> pasan de fila, <kbd>←</kbd> <kbd>→</kbd> pliegan o suben al título, <kbd>Enter</kbd> lleva al APU.</li>
     </ul>
     <figure><img src="manual/3-pantalla.png" alt="Pantalla completa: presupuesto a la izquierda y APU a la derecha" loading="lazy"><figcaption>En el celular el presupuesto queda arriba y el APU abajo.</figcaption></figure>
+    <figure class="chica"><img src="manual/4b-nivel-frente.png" alt="Nivel 2 y un frente elegido, con su total arriba" loading="lazy"><figcaption>Nivel 2 y el frente 01.03 elegido: solo esa rama, con su total y su parte del costo directo.</figcaption></figure>
     <figure class="chica"><img src="manual/4-buscar.png" alt="Búsqueda de pintura latex" loading="lazy"><figcaption>Buscar «pintura latex» deja solo esas partidas, con sus títulos.</figcaption></figure>
   </section>
 
