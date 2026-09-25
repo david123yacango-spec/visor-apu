@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visor de APU · VidBIM</title>
+<meta name="description" content="Revisa cada partida del presupuesto con su análisis de precios unitarios, explicado línea por línea.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta)}
+.datos,.num{font-family:var(--f-datos);font-variant-numeric:tabular-nums}
+.num{text-align:right;white-space:nowrap}
+button{font:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.btn{border:1px solid var(--linea-fuerte);background:var(--superficie-2);color:var(--tinta);border-radius:var(--radio);padding:6px 12px}
+.btn:hover{background:var(--superficie-3)}
+.btn.texto{border-color:transparent;background:transparent}
+.btn.texto:hover{background:var(--superficie-3)}
+.btn.chico{padding:4px 10px;font-size:var(--t-aux)}
+.btn.principal{background:var(--azul);border-color:var(--azul);color:#fff;font-weight:600;padding:10px 16px}
+.btn.principal:hover{background:var(--azul-hover)}
+.btn.principal:disabled{background:var(--superficie-3);border-color:var(--linea-fuerte);color:var(--gris);cursor:not-allowed}
+
+/* ── cabecera: siempre de tinta ── */
+.cab{height:var(--cabecera-alto);background:var(--cabecera-fondo);color:var(--cabecera-texto);display:flex;align-items:center;gap:16px;padding:0 16px;position:relative;z-index:5}
+.marca{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;flex:none}
+.marca svg{width:28px;height:28px;flex:none}
+.marca .wm{font-family:var(--f-marca);font-size:var(--t-marca);letter-spacing:-.045em;line-height:1;white-space:nowrap}
+.marca .wm .a{font-weight:500}.marca .wm .b{font-weight:800}.marca .wm .c{font-weight:500;color:var(--cabecera-azul);margin-left:.3em}
+.cab .archivos{display:flex;gap:8px;margin-left:8px;flex-wrap:nowrap;overflow:hidden;min-width:0}
+.chip{font-family:var(--f-datos);font-size:var(--t-aux);border:1px solid var(--cabecera-linea);border-radius:999px;padding:3px 10px;color:var(--cabecera-texto);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+.cab .der{margin-left:auto;display:flex;gap:8px;align-items:center;flex:none}
+.cab .btn{background:transparent;border-color:var(--cabecera-linea);color:var(--cabecera-texto)}
+.cab .btn:hover{background:var(--cabecera-hover)}
+.cab .btn .corto{display:none}
+
+/* ── portada de acceso y carga ── */
+.portada{min-height:calc(100vh - var(--cabecera-alto));display:grid;place-items:center;padding:24px 16px}
+.tarjeta{width:min(420px,100%);background:var(--superficie);border:1px solid var(--linea);border-radius:var(--radio);padding:32px 28px;text-align:center}
+.tarjeta .simbolo{width:96px;height:96px;display:block;margin:0 auto 12px}
+.tarjeta h1{font-family:var(--f-marca);font-weight:800;font-size:32px;letter-spacing:-.045em;margin:0;line-height:1.1}
+.tarjeta .frase{color:var(--tinta-2);margin:8px 0 24px}
+.tarjeta form{display:grid;gap:12px;text-align:left}
+.tarjeta label{font-size:var(--t-aux);color:var(--tinta-2)}
+.tarjeta input[type=email]{width:100%;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:10px 12px;font:inherit;background:var(--superficie);color:var(--tinta)}
+.tarjeta input[type=email]:focus{outline:2px solid var(--azul);outline-offset:-1px;border-color:var(--azul)}
+.tarjeta .error{color:var(--rojo);font-size:var(--t-aux);min-height:18px;margin-top:-6px}
+.tarjeta .privado{font-size:var(--t-aux);color:var(--gris);margin:16px 0 0}
+.tarjeta .hola{font-size:var(--t-aux);color:var(--gris);margin:-12px 0 16px}
+.suelta{display:grid;gap:12px;text-align:left}
+.caja{border:1.5px dashed var(--linea-fuerte);border-radius:var(--radio);padding:14px 16px;cursor:pointer;display:grid;gap:4px;background:var(--superficie)}
+.caja:hover,.suelta.encima .caja{border-color:var(--azul);background:var(--azul-tinte)}
+.caja .nom{font-weight:600}
+.caja .esp{font-size:var(--t-aux);color:var(--gris)}
+.caja.lista{border-style:solid;border-color:var(--ok);background:var(--ok-tinte)}
+.caja .ok{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--ok)}
+.caja .mal{font-size:var(--t-aux);color:var(--rojo)}
+.suelta .btn.principal{width:100%;margin-top:4px}
+.suelta .cambiar{font-size:var(--t-aux);color:var(--gris);text-align:center}
+.suelta .cambiar button{all:unset;color:var(--azul);cursor:pointer}
+
+/* ── tablero: presupuesto a la izquierda, APU a la derecha ── */
+.tablero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding:16px;max-width:1720px;margin:0 auto;align-items:start}
+.panel{background:var(--superficie);border:1px solid var(--linea);border-radius:var(--radio);min-width:0}
+
+/* ─ presupuesto (como la ventana de VidBIM Costos) ─ */
+.pres{position:sticky;top:16px;height:calc(100vh - var(--cabecera-alto) - 32px);max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.pres .herr{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--linea);flex-wrap:wrap}
+.pres input{flex:1;min-width:180px;border:1px solid var(--linea-fuerte);border-radius:var(--radio);padding:6px 10px;background:var(--superficie);color:var(--tinta);font:inherit;font-size:var(--t-tabla)}
+.pres input:focus{outline:2px solid var(--azul);outline-offset:-1px}
+.pres .herr .sep{width:1px;height:20px;background:var(--linea)}
+.pres .scroll{overflow:auto;flex:1;min-height:0}
+table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
+.grilla th{position:sticky;top:0;background:var(--superficie-2);font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;z-index:1}
+.grilla th.num{text-align:right}
+.grilla td{padding:4px 8px;border-bottom:1px solid var(--linea);white-space:nowrap;height:30px}
+.grilla td.de{overflow:hidden;text-overflow:ellipsis;max-width:0;width:100%}
+.grilla td.it{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris)}
+.grilla td.un{color:var(--gris);font-family:var(--f-datos);font-size:var(--t-aux);text-align:center}
+.grilla tr{cursor:pointer}
+.grilla tr:hover td{background:var(--superficie-2)}
+.grilla tr.t td{font-weight:600}
+.grilla tr.t td.it,.grilla tr.t td.de,.grilla tr.t td.tt{color:var(--c)}
+.grilla tr.n1 td{background:var(--superficie-2)}
+.grilla tr.n1{--c:var(--nivel-1)}.grilla tr.n2{--c:var(--nivel-2)}.grilla tr.n3{--c:var(--nivel-3)}.grilla tr.n4{--c:var(--nivel-4)}
+.grilla tr.n5{--c:var(--nivel-5)}.grilla tr.n6{--c:var(--nivel-6)}.grilla tr.n7{--c:var(--nivel-7)}
+.grilla td.de{padding-left:calc(8px + var(--n,0)*14px)}
+.grilla .pl{display:inline-block;width:14px;color:var(--gris);font-size:10px;text-align:center;margin-right:4px}
+.grilla tr.p td.de{padding-left:calc(8px + var(--n,0)*14px + 18px)}
+.grilla tr.sel td{background:var(--azul-tinte)}
+.grilla tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--azul)}
+.grilla tr.oculta{display:none}
+.grilla tr.sinapu td.de{color:var(--rojo)}
+.grilla .corto{display:none}
+.grilla mark{background:var(--ambar-tinte);color:inherit;padding:0}
+.pres .pie{border-top:1px solid var(--linea);padding:8px 12px;display:flex;justify-content:space-between;gap:12px;font-size:var(--t-aux);color:var(--gris);flex-wrap:wrap}
+.pres .pie b{color:var(--azul);font-family:var(--f-datos);font-weight:600;font-size:var(--t-tabla)}
+.pres .ayuda{font-size:var(--t-aux);color:var(--gris)}
+.pres .nada{padding:24px;color:var(--gris);font-size:var(--t-aux);text-align:center}
+
+/* ─ APU ─ */
+.apu{display:flex;flex-direction:column;scroll-margin-top:16px}
+.apu .vacio{padding:48px 24px;color:var(--gris);text-align:center}
+.miga{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris);padding:12px 16px 0;display:flex;gap:6px;flex-wrap:wrap}
+.miga button{all:unset;cursor:pointer}.miga button:hover{text-decoration:underline}
+.miga .n1{color:var(--nivel-1)}.miga .n2{color:var(--nivel-2)}.miga .n3{color:var(--nivel-3)}.miga .n4{color:var(--nivel-4)}
+.miga .n5{color:var(--nivel-5)}.miga .n6{color:var(--nivel-6)}.miga .n7{color:var(--nivel-7)}
+.cabpartida{display:grid;grid-template-columns:1fr auto;gap:16px;padding:8px 16px 16px;align-items:end}
+.cabpartida .it{font-family:var(--f-datos);color:var(--gris);font-size:var(--t-tabla)}
+.cabpartida h1{font-family:var(--f-marca);font-weight:600;font-size:20px;letter-spacing:-.02em;line-height:1.2;margin:2px 0 10px;text-wrap:balance}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips span{font-family:var(--f-datos);font-size:var(--t-aux);background:var(--superficie-2);border:1px solid var(--linea);border-radius:999px;padding:3px 10px;color:var(--tinta-2)}
+.chips span b{color:var(--tinta);font-weight:600}
+.pu{text-align:right}
+.pu .lbl{font-size:var(--t-aux);color:var(--gris);letter-spacing:.08em;text-transform:uppercase;font-family:var(--f-datos)}
+.pu .val{font-family:var(--f-marca);font-weight:800;font-size:var(--t-pu);letter-spacing:-.03em;color:var(--azul);line-height:1.1;white-space:nowrap}
+.pu .val small{font-size:14px;font-weight:600;letter-spacing:0;margin-right:.25em}
+.pu .por{font-size:var(--t-aux);color:var(--gris)}
+.revisar{margin:0 16px 12px;padding:8px 12px;border-radius:var(--radio);background:var(--rojo-tinte);color:var(--rojo);font-size:var(--t-aux)}
+.peso{padding:0 16px 16px}
+.peso .barra{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--superficie-3)}
+.peso .barra i{display:block;height:100%;background:var(--c)}
+.peso .ley{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:var(--t-aux);color:var(--tinta-2)}
+.peso .ley span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c);margin-right:6px}
+.peso .ley b{font-family:var(--f-datos);font-weight:600;color:var(--tinta)}
+.mo{--c:var(--mo);--t:var(--mo-tinte)}.mat{--c:var(--mat);--t:var(--mat-tinte)}.eq{--c:var(--eq);--t:var(--eq-tinte)}.sc{--c:var(--sc);--t:var(--sc-tinte)}
+.herrapu{display:flex;gap:12px;align-items:center;padding:0 16px 12px;font-size:var(--t-aux);color:var(--gris);flex-wrap:wrap}
+.herrapu label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--tinta-2)}
+.cat{border-top:1px solid var(--linea)}
+.cat header{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:baseline;padding:12px 16px 6px}
+.cat header .punto{width:10px;height:10px;border-radius:2px;background:var(--c);align-self:center}
+.cat header h2{margin:0;font-size:var(--t-seccion);font-weight:600;color:var(--c)}
+.cat header h2 small{font-weight:400;color:var(--gris);font-size:var(--t-aux);margin-left:8px}
+.cat header .pct{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris)}
+.cat header .sub{font-family:var(--f-datos);font-weight:600;font-size:var(--t-total);color:var(--tinta);letter-spacing:-.01em;white-space:nowrap}
+.cat header .sub small{font-size:var(--t-aux);font-weight:500;color:var(--gris);margin-right:.3em}
+table.lineas{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
+.lineas th{font-size:var(--t-aux);font-weight:500;color:var(--tinta-2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap}
+.lineas th.num{text-align:right}
+.lineas th .q{all:unset;display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid var(--linea-fuerte);color:var(--gris);font-size:10px;line-height:12px;text-align:center;margin-left:4px;cursor:help;box-sizing:border-box}
+.lineas td{padding:6px 8px;border-bottom:1px solid var(--linea);vertical-align:top}
+tr.linea:hover td{background:var(--superficie-2)}
+td.cod{font-family:var(--f-datos);font-size:var(--t-aux);color:var(--gris);white-space:nowrap}
+td.ins button{all:unset;cursor:pointer;color:var(--tinta);border-bottom:1px dotted var(--linea-fuerte)}
+td.ins button:hover{color:var(--azul);border-color:var(--azul)}
+td.und{color:var(--gris);font-family:var(--f-datos);font-size:var(--t-aux);white-space:nowrap}
+td.par{font-weight:600}
+tr.linea.dif td.par{color:var(--rojo)}
+tr.cuenta td{padding:0 8px 8px 8px;background:var(--t);font-family:var(--f-datos);font-size:var(--t-aux);color:var(--tinta-2)}
+tr.cuenta td .f{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:6px}
+tr.cuenta .r{display:inline-block;font-size:10px;padding:0 5px;border-radius:999px;border:1px solid var(--linea-fuerte);color:var(--gris);cursor:help}
+tr.cuenta .res{color:var(--tinta);font-weight:600}
+tr.cuenta .flecha,tr.cuenta .igual{color:var(--gris)}
+tr.cuenta .mal{color:var(--rojo)}
+body.sin-cuentas tr.cuenta{display:none}
+tr.subtotal td{background:var(--t);font-family:var(--f-datos);font-weight:600;border-bottom:0}
+tr.subtotal td:first-child{color:var(--c)}
+.vacia{padding:8px 16px 16px;color:var(--gris);font-size:var(--t-aux)}
+.cierre{border-top:1px solid var(--linea);padding:16px;display:grid;gap:12px}
+.cierre .ec{font-family:var(--f-datos);font-size:var(--t-tabla);display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.cierre .ec .k{color:var(--tinta-2)}.cierre .ec .k b{color:var(--c);font-weight:600}
+.cierre .ec .igual{color:var(--gris)}
+.cierre .ec .total{font-family:var(--f-marca);font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--azul)}
+.cierre .ec .total.ok{color:var(--ok)}
+.cierre .nota{font-size:var(--t-aux);color:var(--gris)}
+.cierre .nota b{color:var(--c,var(--tinta));font-family:var(--f-datos)}
+.otros{padding:0 16px 16px}
+.otros h3{font-size:var(--t-cuerpo);font-weight:600;margin:0 0 6px}
+.otros h3 small{font-weight:400;color:var(--gris)}
+.otros ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px 16px}
+.otros li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;font-size:var(--t-aux);padding:4px 0;border-bottom:1px solid var(--linea);cursor:pointer}
+.otros li:hover span:nth-child(2){color:var(--azul)}
+.otros li.distinto{background:var(--ambar-tinte);padding:4px 6px;border-radius:var(--radio)}
+.otros .it{font-family:var(--f-datos);color:var(--gris)}
+.otros .pu2{font-family:var(--f-datos);color:var(--ok);white-space:nowrap}
+.otros li.distinto .pu2{color:var(--ambar)}
+
+/* cajones laterales */
+.cajon{position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:var(--superficie);border-left:1px solid var(--linea);box-shadow:-12px 0 32px rgba(0,0,0,.12);transform:translateX(100%);transition:transform .2s,visibility .2s;visibility:hidden;z-index:20;display:flex;flex-direction:column}
+.cajon.abierto{transform:none;visibility:visible}
+.cajon header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid var(--linea)}
+.cajon header h2{margin:0;font-size:var(--t-seccion);font-family:var(--f-marca);font-weight:600}
+.cajon .cuerpo{padding:12px 16px 24px;overflow:auto;font-size:var(--t-tabla)}
+.cajon dl{margin:0}
+.cajon dt{font-weight:600;margin-top:12px;font-family:var(--f-datos);font-size:var(--t-aux);color:var(--azul);letter-spacing:.04em;text-transform:uppercase;scroll-margin-top:8px}
+.cajon dt.foco{background:var(--azul-tinte);border-radius:var(--radio);padding:2px 4px}
+.cajon dd{margin:2px 0 0;color:var(--tinta-2)}
+.cajon .usos{list-style:none;padding:0;margin:8px 0 0}
+.cajon .usos li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:6px 0;border-bottom:1px solid var(--linea);font-size:var(--t-aux);cursor:pointer}
+.cajon .usos li:hover span:nth-child(2){color:var(--azul)}
+.cajon .usos li.aqui{background:var(--azul-tinte)}
+.cajon .usos .it{font-family:var(--f-datos);color:var(--gris)}
+.cajon .usos .q{font-family:var(--f-datos);color:var(--tinta);white-space:nowrap}
+.cajon .res{background:var(--mo-tinte);border-radius:var(--radio);padding:10px 12px;margin-bottom:8px}
+.cajon .res b{font-family:var(--f-datos);font-weight:600}
+.velo{position:fixed;inset:0;background:rgba(17,21,25,.35);z-index:19;display:none}
+.velo.abierto{display:block}
+footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--t-aux);color:var(--gris);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.cargando{position:fixed;inset:0;display:grid;place-items:center;background:rgba(17,21,25,.25);z-index:30}
+.cargando div{background:var(--superficie);border:1px solid var(--linea);border-radius:var(--radio);padding:16px 24px;font-size:var(--t-cuerpo)}
+
+/* ── ancho medio: apilado como la ventana de la app (presupuesto arriba, APU abajo) ── */
+@media (max-width:1100px){
+  .tablero{grid-template-columns:1fr}
+  .pres{position:static;height:auto;max-height:none}
+  .pres .scroll{height:46vh;flex:none}
+}
+/* ── celular ── */
+@media (max-width:700px){
+  .cab{gap:8px;padding:0 12px}
+  .cab .archivos{display:none}
+  .cab .btn .largo{display:none}
+  .cab .btn{padding:6px 10px}
+  .cab .btn .corto{display:inline;font-weight:600}
+  .marca .wm{font-size:17px}
+  .grilla .corto{display:inline}.grilla .largo{display:none}
+  .tablero{padding:12px;gap:12px}
+  .pres .ayuda{display:none}
+  .pres input{min-width:0;flex-basis:100%}
+  .grilla{table-layout:fixed}
+  .grilla .oc{display:none}
+  .grilla col.c-it{width:74px}.grilla col.c-par{width:78px}.grilla col.c-tot{width:96px}
+  .grilla th,.grilla td{padding-left:4px;padding-right:4px}
+  .grilla td.de{padding-left:calc(4px + var(--n,0)*8px)}
+  .grilla tr.p td.de{padding-left:calc(4px + var(--n,0)*8px + 12px)}
+  .grilla .pl{width:10px;margin-right:2px}
+  .grilla td.it{font-size:10px;overflow:hidden;text-overflow:ellipsis}
+  .grilla td.num{font-size:var(--t-aux)}
+  .cabpartida{grid-template-columns:1fr}
+  .pu{text-align:left}
+  .lineas thead{display:none}
+  .lineas,.lineas tbody,.lineas tr,.lineas td{display:block;width:100%}
+  tr.linea{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;padding:8px 8px 4px;border-bottom:0}
+  tr.linea td{border:0;padding:2px 0}
+  tr.linea td.cod{grid-column:1/-1;order:-2}
+  tr.linea td.ins{grid-column:1/-1;order:-1;font-weight:500}
+  tr.linea td.num::before,tr.linea td.und::before{content:attr(data-l);display:block;font-size:10px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;font-family:var(--f-texto)}
+  tr.linea td.num{text-align:left}
+  tr.linea td.sinvalor{display:none}
+  tr.cuenta td{padding:8px}
+  tr.subtotal{display:flex;justify-content:space-between;background:var(--t)}
+  tr.subtotal td{width:auto}
+  .cat header{grid-template-columns:auto 1fr auto;grid-template-areas:"p h s" "p q q"}
+  .cat header .punto{grid-area:p}.cat header h2{grid-area:h}.cat header .sub{grid-area:s}.cat header .pct{grid-area:q}
+  .otros ul{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Símbolo sólido (02-Simbolo/vidbim-simbolo-solido.svg): brazo azul en --b, el otro en currentColor. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vidbim-s" viewBox="0 0 100 100">
+    <path d="M4,15.5 L50.5,61.5 L50.5,84.5 L4,38.5 Z" fill="var(--b,#1F45DE)"/>
+    <path d="M96,15.5 L49.5,61.5 L49.5,84.5 L96,38.5 Z" fill="currentColor"/>
+  </symbol>
+  <!-- Símbolo con niveles (02-Simbolo/vidbim-simbolo.svg), para la portada. -->
+  <symbol id="vidbim-niveles" viewBox="0 0 100 100">
+    <defs><clipPath id="vidbim-corte"><path d="M4,12.6 L50.5,58.6 L50.5,81.6 L4,35.6 Z"/></clipPath></defs>
+    <g clip-path="url(#vidbim-corte)" fill="var(--azul)"><rect x="0" y="12.6" width="56" height="2.875"/><rect x="0" y="18.35" width="56" height="2.875"/><rect x="0" y="24.1" width="56" height="2.875"/><rect x="0" y="29.85" width="56" height="2.875"/><rect x="0" y="35.6" width="56" height="2.875"/><rect x="0" y="41.35" width="56" height="2.875"/><rect x="0" y="47.1" width="56" height="2.875"/><rect x="0" y="52.85" width="56" height="2.875"/><rect x="0" y="58.6" width="56" height="2.875"/><rect x="0" y="64.35" width="56" height="2.875"/><rect x="0" y="70.1" width="56" height="2.875"/><rect x="0" y="75.85" width="56" height="2.875"/></g>
+    <path d="M96,12.6 L49.5,58.6 L49.5,81.6 L96,35.6 Z" fill="currentColor"/>
+    <rect x="21.25" y="84.5" width="57.5" height="2.875" fill="currentColor" opacity="0.34"/>
+  </symbol>
+</svg>
+
+<header class="cab">
+  <a class="marca" href="#" style="--b:#6285FF" onclick="return false">
+    <svg><use href="#vidbim-s"/></svg>
+    <span class="wm"><span class="a">Vid</span><span class="b">BIM</span><span class="c">Visor de APU</span></span>
+  </a>
+  <div class="archivos" id="chipsArchivos"></div>
+  <div class="der">
+    <button class="btn" id="btnCambiar" hidden title="Cargar otros Excel"><span class="largo">Otros archivos</span><span aria-hidden="true">⇄</span></button>
+    <button class="btn" onclick="abrirComo()"><span class="largo">¿Cómo se lee un APU?</span><span class="corto" aria-label="¿Cómo se lee un APU?">?</span></button>
+    <button class="btn" onclick="tema()" title="Tema claro / oscuro">◐</button>
+  </div>
+</header>
+
+<!-- ─────── Portada: acceso por correo y luego los Excel ─────── -->
+<main class="portada" id="portada">
+  <div class="tarjeta">
+    <svg class="simbolo" style="color:var(--tinta)"><use href="#vidbim-niveles"/></svg>
+    <h1>Visor de APU</h1>
+    <p class="frase">Entiende cómo se forma cada precio unitario</p>
+
+    <form id="formCorreo" novalidate>
+      <label for="correo">Correo con acceso</label>
+      <input type="email" id="correo" autocomplete="email" placeholder="tu@correo.com" required>
+      <div class="error" id="errorCorreo"></div>
+      <button class="btn principal" type="submit" id="btnEntrar">Entrar</button>
+    </form>
+
+    <div class="suelta" id="suelta" hidden>
+      <p class="hola" id="hola"></p>
+      <div class="caja" data-tipo="presupuesto" tabindex="0">
+        <span class="nom">Presupuesto</span>
+        <span class="esp">Excel «Presupuesto» exportado de Power Cost o VidBIM Costos</span>
+      </div>
+      <div class="caja" data-tipo="apu" tabindex="0">
+        <span class="nom">APU</span>
+        <span class="esp">Excel «Análisis de Costos Unitarios» del mismo presupuesto</span>
+      </div>
+      <button class="btn principal" id="btnAbrir" disabled>Abrir</button>
+      <div class="cambiar">Suelte los dos archivos aquí o haga clic en cada caja · <button type="button" id="btnSalir">otro correo</button></div>
+      <input type="file" id="archivo" accept=".xlsx,.xls" multiple hidden>
+    </div>
+    <p class="privado">Tus Excel se leen en el navegador y no se suben a ningún servidor.</p>
+  </div>
+</main>
+
+<!-- ─────── Tablero ─────── -->
+<main class="tablero" id="tablero" hidden>
+  <section class="panel pres" aria-label="Presupuesto">
+    <div class="herr">
+      <input type="search" id="buscar" placeholder="Buscar partida o ítem…  (cartel, 01.01.01, guardian)" aria-label="Buscar">
+      <span class="sep"></span>
+      <button class="btn chico" id="btnExpandir">Expandir todo</button>
+      <button class="btn chico texto" id="btnContraer">Contraer</button>
+      <span class="ayuda">↑ ↓ mueven · Enter abre el APU · ← → pliegan</span>
+    </div>
+    <div class="scroll" id="scrollPres">
+      <table class="grilla" id="grilla">
+        <colgroup><col class="c-it"><col><col class="oc"><col class="oc"><col class="oc"><col class="c-par"><col class="c-tot"></colgroup>
+        <thead><tr><th>Ítem</th><th>Descripción</th><th class="oc" style="text-align:center">Und.</th><th class="num oc">Metrado</th><th class="num oc">Precio S/</th><th class="num">Parcial S/</th><th class="num"><span class="largo">Total título S/</span><span class="corto">Total S/</span></th></tr></thead>
+        <tbody id="cuerpoPres"></tbody>
+      </table>
+      <div class="nada" id="nadaPres" hidden>Nada coincide con la búsqueda.</div>
+    </div>
+    <div class="pie"><span id="pieInfo"></span><span id="pieCd"></span></div>
+  </section>
+
+  <section class="panel apu" id="apu" aria-live="polite">
+    <div class="vacio">Elija una partida del presupuesto para ver su APU.</div>
+  </section>
+</main>
+
+<footer class="pie" id="pieTablero" hidden>
+  <span>Los Excel se leen en tu navegador y no se envían a ningún servidor.</span>
+  <span>VidBIM · Visor de APU · mismas reglas de cálculo que VidBIM Costos</span>
+</footer>
+
+<div class="velo" id="velo" onclick="cerrar()"></div>
+<aside class="cajon" id="como" aria-label="Cómo se lee un APU">
+  <header><h2>¿Cómo se lee un APU?</h2><button class="btn texto" onclick="cerrar()">Cerrar ✕</button></header>
+  <div class="cuerpo">
+    <p>Un análisis de precios unitarios dice cuánto cuesta hacer <b>una unidad</b> de la partida: un cartel, un metro cúbico, un mes. Se suman cuatro categorías y esa suma es el <b>precio unitario</b>.</p>
+    <dl>
+      <dt id="ay-codigo">Código</dt><dd>Identifica al insumo en el catálogo. Los 47 son mano de obra; 43 madera; 37 herramientas.</dd>
+      <dt id="ay-insumo">Insumo</dt><dd>El recurso: una persona, un material, una máquina o un subcontrato. Clic para ver en qué otras partidas se usa.</dd>
+      <dt id="ay-unidad">Unidad</dt><dd>hh es hora-hombre; hm, hora-máquina; %MO es un porcentaje de la mano de obra de la partida.</dd>
+      <dt id="ay-cuadrilla">Cuadrilla</dt><dd>Cuántas personas (o máquinas) de ese tipo trabajan juntas. 0.1 es un capataz que atiende diez cuadrillas.</dd>
+      <dt id="ay-rendimiento">Rendimiento</dt><dd>Cuántas unidades hace la cuadrilla en un día de 8 horas. Va en la cabecera y solo afecta a las líneas por hora o por día.</dd>
+      <dt id="ay-cantidad">Cantidad</dt><dd>Lo que consume una unidad de partida. En hh sale de la cuenta <span class="datos">cuadrilla × 8 ÷ rendimiento</span>, con 4 decimales. En materiales es el consumo con desperdicio.</dd>
+      <dt id="ay-precio">Precio</dt><dd>Precio del insumo, único en todo el presupuesto. En %MO el precio es el subtotal de mano de obra de esta partida.</dd>
+      <dt id="ay-parcial">Parcial</dt><dd><span class="datos">cantidad × precio</span>, redondeado a 2 decimales línea por línea. Los subtotales suman parciales ya redondeados.</dd>
+      <dt id="ay-pu">P.U.</dt><dd>Suma de los cuatro subtotales. <span class="datos">Metrado × P.U.</span> es el parcial de la partida, que sube a su título.</dd>
+      <dt id="ay-redondeo">R2 · R4</dt><dd>Marcan dónde se redondea: a 2 decimales (soles) y a 4 (cantidades), siempre mitad hacia arriba.</dd>
+    </dl>
+  </div>
+</aside>
+<aside class="cajon" id="usos" aria-label="Dónde se usa el insumo">
+  <header><h2 id="usosTitulo"></h2><button class="btn texto" onclick="cerrar()">Cerrar ✕</button></header>
+  <div class="cuerpo" id="usosCuerpo"></div>
+</aside>
+<div class="cargando" id="cargando" hidden><div id="cargandoTexto">Leyendo…</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="lector.js"></script>
+<script>
+'use strict';
+// ── Acceso: la hoja de Google «Visor APU» con su Apps Script (como el taller de Flores Amarillas).
+// Vacío = sin comprobar (solo para probar en local).
+const SERVIDOR = '';
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const f2 = x => x == null ? '' : x.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const f4 = x => x == null ? '' : x.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+const fn = x => x == null ? '' : String(+x.toFixed(6));                   // 0.1, 1, 2.5 (sin ceros de más)
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const leer = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const CATS = [['mo', 'Mano de obra'], ['mat', 'Materiales'], ['eq', 'Equipo'], ['sc', 'Subcontratos']];
+
+// ─────────── tema ───────────
+function tema() {
+  const r = document.documentElement;
+  const oscuro = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  r.dataset.theme = oscuro ? 'light' : 'dark'; guardar('visor.tema', r.dataset.theme);
+}
+{ const t = leer('visor.tema'); if (t) document.documentElement.dataset.theme = t; }
+
+// ─────────── cajones ───────────
+function abrir(id) { cerrar(); $('#' + id).classList.add('abierto'); $('#velo').classList.add('abierto'); }
+function cerrar() { document.querySelectorAll('.cajon').forEach(c => c.classList.remove('abierto')); $('#velo').classList.remove('abierto'); }
+function abrirComo(entrada) {
+  abrir('como');
+  document.querySelectorAll('#como dt').forEach(d => d.classList.remove('foco'));
+  if (entrada) { const d = $('#ay-' + entrada); if (d) { d.classList.add('foco'); d.scrollIntoView({ block: 'start' }); } }
+}
+
+// ─────────── acceso por correo ───────────
+async function comprobar(correo) {
+  if (!SERVIDOR) return { ok: true, nombre: '', sinServidor: true };
+  const r = await fetch(SERVIDOR, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion: 'entrar', correo }) });
+  return r.json();
+}
+function mostrarCarga(nombre) {
+  $('#formCorreo').hidden = true; $('#suelta').hidden = false;
+  $('#hola').textContent = (nombre ? `Hola, ${nombre}. ` : '') + 'Ahora cargue los dos Excel del presupuesto.';
+}
+$('#formCorreo').addEventListener('submit', async e => {
+  e.preventDefault();
+  const correo = $('#correo').value.trim().toLowerCase();
+  const err = $('#errorCorreo'); err.textContent = '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) { err.textContent = 'Escriba un correo válido.'; return; }
+  $('#btnEntrar').disabled = true; $('#btnEntrar').textContent = 'Comprobando…';
+  try {
+    const r = await comprobar(correo);
+    if (r.ok) { guardar('visor.correo', correo); guardar('visor.nombre', r.nombre || ''); mostrarCarga(r.nombre); }
+    else err.textContent = r.motivo === 'sin_acceso' ? 'Este correo no tiene acceso. Pídaselo a David.' : 'No se pudo comprobar el correo (' + (r.motivo || 'error') + ').';
+  } catch (x) { err.textContent = 'No se pudo comprobar el correo. Revise su conexión e intente de nuevo.'; }
+  $('#btnEntrar').disabled = false; $('#btnEntrar').textContent = 'Entrar';
+});
+$('#btnSalir').addEventListener('click', () => { guardar('visor.correo', ''); $('#suelta').hidden = true; $('#formCorreo').hidden = false; $('#correo').focus(); });
+{ const c = leer('visor.correo'); if (c) { $('#correo').value = c; mostrarCarga(leer('visor.nombre')); } }
+
+// ─────────── carga de los Excel ───────────
+const cargados = { presupuesto: null, apu: null };   // { nombre, wb, leido }
+function cargando(si, texto) { $('#cargando').hidden = !si; if (texto) $('#cargandoTexto').textContent = texto; }
+async function recibir(archivos) {
+  for (const a of archivos) {
+    cargando(true, `Leyendo ${a.name}…`);
+    await new Promise(r => setTimeout(r, 30));
+    let tipo = null, error = '';
+    try {
+      const wb = XLSX.read(await a.arrayBuffer(), { type: 'array' });
+      tipo = Lector.tipoDe(XLSX, wb);
+      if (tipo === 'apu') cargados.apu = { nombre: a.name, leido: Lector.leerApu(XLSX, wb) };
+      else if (tipo === 'presupuesto') cargados.presupuesto = { nombre: a.name, leido: Lector.leerPresupuesto(XLSX, wb) };
+      else error = `«${a.name}» no parece un Excel de Presupuesto ni de APU exportado de Power Cost (hoja SP1).`;
+    } catch (x) { error = `No se pudo leer «${a.name}».`; }
+    if (error) marcarError(error);
+  }
+  cargando(false);
+  pintarCajas();
+}
+function marcarError(msg) {
+  const caja = document.querySelector('.caja:not(.lista)') || document.querySelector('.caja');
+  let m = caja.querySelector('.mal'); if (!m) { m = document.createElement('span'); m.className = 'mal'; caja.appendChild(m); }
+  m.textContent = msg;
+}
+function pintarCajas() {
+  document.querySelectorAll('.caja').forEach(c => {
+    const d = cargados[c.dataset.tipo];
+    c.classList.toggle('lista', !!d);
+    c.querySelectorAll('.ok').forEach(x => x.remove());
+    if (d) {
+      c.querySelector('.mal')?.remove();
+      const n = c.dataset.tipo === 'apu' ? `${d.leido.apus.length.toLocaleString('es-PE')} APU` : `${d.leido.filas.filter(f => f.esPartida).length.toLocaleString('es-PE')} partidas`;
+      const s = document.createElement('span'); s.className = 'ok'; s.textContent = `✓ ${d.nombre} · ${n}`; c.appendChild(s);
+    }
+  });
+  $('#btnAbrir').disabled = !(cargados.presupuesto && cargados.apu);
+}
+document.querySelectorAll('.caja').forEach(c => {
+  c.addEventListener('click', () => $('#archivo').click());
+  c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#archivo').click(); } });
+});
+$('#archivo').addEventListener('change', e => { recibir([...e.target.files]); e.target.value = ''; });
+['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); $('#suelta').classList.add('encima'); }));
+['dragleave', 'drop'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); if (t === 'drop' || e.target === document.documentElement) $('#suelta').classList.remove('encima'); }));
+document.addEventListener('drop', e => {
+  if ($('#suelta').hidden) return;
+  const fs = [...(e.dataTransfer?.files || [])].filter(f => /\.xlsx?$/i.test(f.name));
+  if (fs.length) recibir(fs);
+});
+$('#btnAbrir').addEventListener('click', () => { cargando(true, 'Armando el presupuesto…'); setTimeout(() => { abrirTablero(); cargando(false); }, 30); });
+$('#btnCambiar').addEventListener('click', () => {
+  $('#tablero').hidden = true; $('#pieTablero').hidden = true; $('#portada').hidden = false; $('#btnCambiar').hidden = true; $('#chipsArchivos').innerHTML = '';
+});
+
+// ─────────── tablero ───────────
+let D = null;            // datos armados
+let filasDom = [];       // <tr> del presupuesto, en orden
+let porItemFila = {};    // ítem → índice
+let sel = -1;
+
+const MENORES = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'en', 'a', 'al', 'para', 'con', 'por', 'o', 'u']);
+function titleCase(s) { return s.toLowerCase().replace(/[a-záéíóúñü][^\s()–-]*/g, (w, i) => i > 0 && MENORES.has(w) ? w : w[0].toUpperCase() + w.slice(1)); }
+function nombreCorto(s) { return s.replace(/^CAMPAMENTO\s+/i, ''); }
+
+function abrirTablero() {
+  D = Lector.armar(cargados.presupuesto.leido, cargados.apu.leido);
+  const F = D.filas;
+  // Totales de título (los del Excel; si faltan, se suman).
+  const idx = {}; F.forEach((f, i) => idx[f.item] = i);
+  F.forEach(f => f.padre = f.item.includes('.') ? f.item.slice(0, f.item.lastIndexOf('.')) : null);
+  F.forEach(f => { f.tieneHijos = false; });
+  F.forEach(f => { if (f.padre && idx[f.padre] != null) F[idx[f.padre]].tieneHijos = true; });
+  // Campamento de cada partida: su título de nivel 2 (como el Excel del cuadro).
+  F.forEach(f => { const it2 = f.item.split('.').slice(0, 2).join('.'); const t = F[idx[it2]]; f.grupo = t && !t.esPartida ? t.descripcion : ''; });
+  // La misma partida en otros campamentos: mismo nombre y unidad.
+  const gemelas = {};
+  F.filter(f => f.esPartida).forEach(f => { const k = f.descripcion.trim().toUpperCase() + '|' + (f.unidad || '').toUpperCase(); (gemelas[k] ||= []).push(f); f.gemelas = gemelas[k]; });
+
+  let html = '';
+  F.forEach((f, i) => {
+    const n = f.nivel - 1;
+    if (f.esPartida) {
+      html += `<tr class="p${f.apu ? '' : ' sinapu'}" data-i="${i}" style="--n:${n}"><td class="it">${esc(f.item)}</td><td class="de" title="${esc(f.descripcion)}">${esc(f.descripcion)}</td>` +
+        `<td class="un oc">${esc(f.unidad)}</td><td class="num oc">${f2(f.metrado)}</td><td class="num oc">${f2(f.precio)}</td><td class="num">${f2(f.parcial)}</td><td></td></tr>`;
+    } else {
+      html += `<tr class="t n${Math.min(f.nivel, 7)}" data-i="${i}" style="--n:${n}"><td class="it">${esc(f.item)}</td><td class="de" title="${esc(f.descripcion)}"><span class="pl">${f.tieneHijos ? '▾' : ''}</span>${esc(f.descripcion)}</td>` +
+        `<td class="oc"></td><td class="oc"></td><td class="oc"></td><td></td><td class="num tt">${f2(f.total)}</td></tr>`;
+    }
+  });
+  $('#cuerpoPres').innerHTML = html;
+  filasDom = [...$('#cuerpoPres').children];
+  porItemFila = idx;
+  plegados = new Set(F.map((f, i) => !f.esPartida && f.tieneHijos ? i : -1).filter(i => i >= 0));
+  const nIns = Object.keys(D.insumos).length;
+  const e = D.encabezado;
+  $('#pieInfo').textContent = [titleCase(e.Proyecto || ''), (e['Costo a'] || '').toLowerCase(), `${F.filter(f => f.esPartida).length.toLocaleString('es-PE')} partidas`, `${nIns.toLocaleString('es-PE')} insumos`].filter(Boolean).join(' · ');
+  $('#pieCd').innerHTML = `Costo directo <b>S/ ${f2(D.cd)}</b>`;
+  $('#chipsArchivos').innerHTML = `<span class="chip" title="${esc(cargados.presupuesto.nombre)}">Presupuesto · ${esc(cargados.presupuesto.nombre)}</span><span class="chip">APU · ${D.apus.length.toLocaleString('es-PE')} partidas</span>`;
+  $('#portada').hidden = true; $('#tablero').hidden = false; $('#pieTablero').hidden = false; $('#btnCambiar').hidden = false;
+  $('#buscar').value = '';
+  // Primera partida abierta y elegida.
+  const primera = F.findIndex(f => f.esPartida);
+  if (primera >= 0) irA(primera, false); else refrescar();
+}
+
+// ── plegado ──
+let plegados = new Set();
+let filtro = null;       // Set de índices visibles por la búsqueda
+function refrescar() {
+  const F = D.filas;
+  let ocultoHasta = null;   // prefijo del título plegado que oculta a los de abajo
+  let visibles = 0;
+  F.forEach((f, i) => {
+    let oculta = false;
+    if (filtro) oculta = !filtro.has(i);
+    else {
+      if (ocultoHasta && f.item.startsWith(ocultoHasta)) oculta = true; else ocultoHasta = null;
+      if (!oculta && plegados.has(i)) ocultoHasta = f.item + '.';
+    }
+    const tr = filasDom[i];
+    tr.classList.toggle('oculta', oculta);
+    if (!f.esPartida && f.tieneHijos) tr.querySelector('.pl').textContent = (!filtro && plegados.has(i)) ? '▸' : '▾';
+    if (!oculta) visibles++;
+  });
+  $('#nadaPres').hidden = visibles > 0;
+}
+function plegar(i, si) { if (D.filas[i].esPartida || !D.filas[i].tieneHijos) return; if (si) plegados.add(i); else plegados.delete(i); refrescar(); }
+function abrirAncestros(i) {
+  const it = D.filas[i].item.split('.');
+  for (let k = 1; k < it.length; k++) { const j = porItemFila[it.slice(0, k).join('.')]; if (j != null) plegados.delete(j); }
+}
+$('#btnExpandir').addEventListener('click', () => { plegados.clear(); refrescar(); });
+$('#btnContraer').addEventListener('click', () => {
+  D.filas.forEach((f, i) => { if (!f.esPartida && f.tieneHijos && f.nivel >= 1) plegados.add(i); });
+  if (sel >= 0) { /* deja visible el nivel 1 */ }
+  refrescar();
+});
+
+// ── búsqueda en vivo ──
+let tBuscar = 0;
+$('#buscar').addEventListener('input', () => { clearTimeout(tBuscar); tBuscar = setTimeout(buscar, 120); });
+function sinTilde(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase(); }
+function buscar() {
+  const q = sinTilde($('#buscar').value.trim());
+  if (!q) { filtro = null; if (sel >= 0) abrirAncestros(sel); refrescar(); if (sel >= 0) filasDom[sel].scrollIntoView({ block: 'center' }); return; }
+  const palabras = q.split(/\s+/);
+  const F = D.filas, vis = new Set();
+  F.forEach((f, i) => {
+    const t = sinTilde(f.item + ' ' + f.descripcion);
+    if (palabras.every(p => t.includes(p))) {
+      vis.add(i);
+      const it = f.item.split('.');
+      for (let k = 1; k < it.length; k++) { const j = porItemFila[it.slice(0, k).join('.')]; if (j != null) vis.add(j); }
+      if (!f.esPartida) F.forEach((g, j) => { if (g.item.startsWith(f.item + '.')) vis.add(j); });
+    }
+  });
+  filtro = vis; refrescar();
+  $('#scrollPres').scrollTop = 0;
+}
+
+// ── selección y teclado ──
+function seleccionar(i, mostrarApu = true) {
+  if (sel >= 0) filasDom[sel].classList.remove('sel');
+  sel = i; filasDom[i].classList.add('sel');
+  filasDom[i].scrollIntoView({ block: 'nearest' });
+  if (mostrarApu) pintarApu(D.filas[i]);
+}
+function irA(i, bajar = true) {
+  if (filtro && !filtro.has(i)) { $('#buscar').value = ''; filtro = null; }
+  abrirAncestros(i); refrescar(); seleccionar(i);
+  filasDom[i].scrollIntoView({ block: 'center' });
+  if (bajar && matchMedia('(max-width:1100px)').matches) $('#apu').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('#cuerpoPres').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  const i = +tr.dataset.i;
+  if (e.target.classList.contains('pl')) { plegar(i, !plegados.has(i)); return; }
+  seleccionar(i);
+});
+$('#cuerpoPres').addEventListener('dblclick', e => { const tr = e.target.closest('tr'); if (tr) plegar(+tr.dataset.i, !plegados.has(+tr.dataset.i)); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { cerrar(); return; }
+  if ($('#tablero').hidden || e.target.tagName === 'INPUT' || sel < 0) return;
+  if ($('.cajon.abierto')) return;
+  const vis = filasDom.map((tr, i) => i).filter(i => !filasDom[i].classList.contains('oculta'));
+  const k = vis.indexOf(sel);
+  if (e.key === 'ArrowDown' && vis[k + 1] != null) { seleccionar(vis[k + 1]); e.preventDefault(); }
+  else if (e.key === 'ArrowUp' && k > 0) { seleccionar(vis[k - 1]); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { plegar(sel, false); e.preventDefault(); }
+  else if (e.key === 'ArrowLeft') {
+    const f = D.filas[sel];
+    if (!f.esPartida && f.tieneHijos && !plegados.has(sel)) plegar(sel, true);
+    else if (f.padre != null && porItemFila[f.padre] != null) seleccionar(porItemFila[f.padre]);
+    e.preventDefault();
+  }
+  else if (e.key === 'Enter') { $('#apu').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+});
+
+// ─────────── APU ───────────
+const mostrarCuentas = () => leer('visor.cuentas') !== 'no';
+document.body.classList.toggle('sin-cuentas', !mostrarCuentas());
+
+function plural(s, n) {
+  if (n <= 1) return s;
+  return s.split(' ').map((w, i) => i ? w : (/[aeiouáéíóú]$/.test(w) ? w + 's' : w + 'es')).join(' ');
+}
+function unidadVista(u) { return /^(HH|HM|HE)$/i.test(u) ? u.toLowerCase() : u; }
+const R4 = '<span class="r" title="Redondeo a 4 decimales, mitad hacia arriba">R4</span>';
+const R2 = '<span class="r" title="Redondeo a 2 decimales, mitad hacia arriba">R2</span>';
+const cerca = (a, b) => Math.abs(a - b) < 1e-9;
+
+function cuenta(l, apu) {
+  const u = unidadVista(l.unidad), rend = apu.rendimiento, ru = apu.unidad;
+  const tramos = [];
+  const eq = '<span class="igual">=</span>', fl = '<span class="flecha">→</span>';
+  if (l.tipo === 'tiempo' || l.tipo === 'dia') {
+    const bruto = l.tipo === 'tiempo' ? l.cuadrilla * 8 / rend : l.cuadrilla / rend;
+    const base = l.tipo === 'tiempo' ? `${fn(l.cuadrilla)} cuad × 8 h ÷ ${f4(rend)} ${esc(ru)}/día` : `${fn(l.cuadrilla)} cuad ÷ ${f4(rend)} ${esc(ru)}/día`;
+    tramos.push(`<span>${base}</span>${eq}` + (cerca(bruto, l.cantidad) ? `<span class="res">${f4(l.cantidad)} ${esc(u)}</span>`
+      : `<span>${+bruto.toFixed(8)}</span>${fl}<span class="res">${f4(l.cantidad)} ${esc(u)}</span>${R4}`));
+  }
+  if (l.tipo === 'pmo') {
+    const bruto = (l.cantidad || 0) * l.calcPrecio / 100;
+    tramos.push(`<span>${fn(l.cantidad)} % × S/ ${f2(l.calcPrecio)} (mano de obra)</span>${eq}` + (cerca(bruto, l.parcial) ? `<span class="res">S/ ${f2(l.parcial)}</span>`
+      : `<span>${+bruto.toFixed(6)}</span>${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}`));
+  } else {
+    const bruto = (l.cantidad || 0) * (l.precio || 0);
+    tramos.push(`<span>${f4(l.cantidad)} ${esc(u)} × S/ ${f2(l.precio)}</span>${eq}` + (cerca(bruto, l.parcial) ? `<span class="res">S/ ${f2(l.parcial)}</span>`
+      : `<span>${+bruto.toFixed(6)}</span>${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}`));
+  }
+  let extra = '';
+  if (Math.abs(l.calcParcial - (l.parcial || 0)) > 0.005) extra = `<span class="mal">el Excel trae S/ ${f2(l.parcial)}; la cuenta da S/ ${f2(l.calcParcial)}</span>`;
+  return `<div class="f">${tramos.join(fl)}${extra}</div>`;
+}
+
+const AYUDA_COL = {
+  cuadrilla: 'Personas de ese oficio en la cuadrilla. 0.1 = un capataz que atiende 10 cuadrillas',
+  cantidad: { mo: 'hh por unidad de partida = cuadrilla × 8 h ÷ rendimiento', eq: 'Horas de máquina por unidad = cuadrilla × 8 h ÷ rendimiento; o la cantidad escrita', mat: 'Lo que consume una unidad de partida; en materiales incluye el desperdicio', sc: 'Cantidad del subcontrato por unidad de partida' },
+  precio: 'Precio del insumo, único en todo el presupuesto; en %MO es el subtotal de mano de obra',
+};
+function q(txt, entrada) { return `<button class="q" title="${esc(txt)}" onclick="abrirComo('${entrada}')" aria-label="Ayuda">?</button>`; }
+
+function pintarApu(f) {
+  const cont = $('#apu');
+  if (!f.esPartida) {
+    const hijos = D.filas.filter(g => g.esPartida && g.item.startsWith(f.item + '.')).length;
+    cont.innerHTML = `${miga(f)}<div class="cabpartida"><div><div class="it">Título ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1>` +
+      `<div class="chips"><span>Partidas <b>${hijos.toLocaleString('es-PE')}</b></span></div></div>` +
+      `<div class="pu"><div class="lbl">Total del título</div><div class="val"><small>S/</small>${f2(f.total)}</div><div class="por">suma de sus partidas</div></div></div>` +
+      `<div class="vacio">Elija una partida de este título para ver su APU.</div>`;
+    return;
+  }
+  const a = f.apu;
+  if (!a) {
+    cont.innerHTML = `${miga(f)}<div class="cabpartida"><div><div class="it">Partida ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1></div></div>` +
+      `<div class="revisar">Esta partida no tiene APU en el Excel de APU que cargó. Revise que los dos Excel sean del mismo presupuesto.</div>`;
+    return;
+  }
+  const cu = a.cu ?? a.calcCu;
+  const sub = c => a.subtotales[c] ?? a.calcSubtotales[c] ?? 0;
+  const pct = c => cu ? sub(c) / cu * 100 : 0;
+  const cuadrilla = a.lineas.filter(l => l.categoria === 'mo' && l.cuadrilla != null)
+    .map(l => `${fn(l.cuadrilla)} ${esc(plural(l.descripcion.toLowerCase(), l.cuadrilla))}`).join(' · ');
+  const nMo = a.lineas.filter(l => l.categoria === 'mo').length;
+  let h = miga(f);
+  h += `<div class="cabpartida"><div><div class="it">Partida ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1><div class="chips">` +
+    `<span>Unidad <b>${esc(f.unidad || a.unidad)}</b></span>` +
+    (a.rendimiento ? `<span>Rendimiento <b>${f4(a.rendimiento)} ${esc(a.unidad)}/día</b></span>` : `<span>Rendimiento <b>—</b></span>`) +
+    (cuadrilla ? `<span>Cuadrilla <b>${cuadrilla}</b></span>` : '') +
+    (f.metrado != null ? `<span>Metrado <b>${f2(f.metrado)} ${esc(f.unidad)}</b></span>` : '') +
+    `</div></div><div class="pu"><div class="lbl">Precio unitario</div><div class="val"><small>S/</small>${f2(cu)}</div><div class="por">por ${esc(f.unidad || a.unidad)} · suma de las cuatro categorías</div></div></div>`;
+  if (a.diferencias.length) h += `<div class="revisar">Al rehacer las cuentas no cierra: ${esc(a.diferencias.slice(0, 4).join(' · '))}. Revise este APU en el programa.</div>`;
+  if (f.precio != null && Math.abs(f.precio - cu) > 0.005) h += `<div class="revisar">El presupuesto usa P.U. S/ ${f2(f.precio)} y el APU da S/ ${f2(cu)}.</div>`;
+  // barra de peso
+  h += `<div class="peso"><div class="barra">` + CATS.filter(([c]) => sub(c) > 0).map(([c, n]) => `<i class="${c}" style="width:${pct(c).toFixed(2)}%" title="${n} ${pct(c).toFixed(2)} %"></i>`).join('') +
+    `</div><div class="ley">` + CATS.map(([c, n]) => `<span class="${c}">${n} <b>${f2(sub(c))}</b>${sub(c) > 0 ? ` · ${pct(c).toFixed(1)} %` : ''}</span>`).join('') + `</div></div>`;
+  h += `<div class="herrapu"><label><input type="checkbox" id="chkCuentas" ${mostrarCuentas() ? 'checked' : ''}> Mostrar la cuenta de cada línea</label><span>·</span><span>Clic en un insumo: dónde más se usa</span></div>`;
+  // categorías
+  CATS.forEach(([c, n]) => {
+    const ls = a.lineas.filter(l => l.categoria === c);
+    const extra = c === 'mo' && ls.length && ls.every(l => /^hh$/i.test(l.unidad)) ? ' · en hh' : '';
+    h += `<section class="cat ${c}"><header><span class="punto"></span><h2>${n} <small>${ls.length} ${ls.length === 1 ? 'línea' : 'líneas'}${extra}</small></h2>` +
+      `<span class="pct">${sub(c) > 0 ? pct(c).toFixed(2) + ' % del P.U.' : ''}</span><span class="sub"><small>S/</small>${f2(sub(c))}</span></header>`;
+    if (!ls.length) { h += `<div class="vacia">Esta partida no tiene ${n.toLowerCase()}.</div></section>`; return; }
+    h += `<table class="lineas"><thead><tr><th>Código</th><th>Insumo</th><th>Und.</th>` +
+      `<th class="num">Cuadrilla${c === 'mo' || c === 'eq' ? ' ' + q(AYUDA_COL.cuadrilla, 'cuadrilla') : ''}</th>` +
+      `<th class="num">Cantidad ${q(AYUDA_COL.cantidad[c], 'cantidad')}</th><th class="num">Precio S/${c === 'eq' && ls.some(l => l.tipo === 'pmo') ? ' ' + q(AYUDA_COL.precio, 'precio') : ''}</th><th class="num">Parcial S/</th></tr></thead><tbody>`;
+    ls.forEach(l => {
+      const k = l.codigo + '|' + l.descripcion;
+      const dif = Math.abs(l.calcParcial - (l.parcial || 0)) > 0.005;
+      h += `<tr class="linea${dif ? ' dif' : ''}"><td class="cod">${esc(l.codigo)}</td><td class="ins"><button data-ins="${esc(k)}">${esc(l.descripcion)}</button></td>` +
+        `<td class="und" data-l="Und.">${esc(unidadVista(l.unidad))}</td><td class="num${l.cuadrilla == null ? ' sinvalor' : ''}" data-l="Cuadrilla">${fn(l.cuadrilla)}</td>` +
+        `<td class="num" data-l="Cantidad">${f4(l.cantidad)}</td><td class="num" data-l="Precio S/">${f2(l.tipo === 'pmo' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num par" data-l="Parcial S/">${f2(l.parcial)}</td></tr>` +
+        `<tr class="cuenta"><td colspan="7">${cuenta(l, a)}</td></tr>`;
+    });
+    const suma = ls.length <= 4 ? `${n} · ${ls.map(l => f2(l.parcial)).join(' + ')}` : `${n} · suma de los ${ls.length} parciales`;
+    h += `<tr class="subtotal"><td colspan="6">${suma}</td><td class="num">${f2(sub(c))}</td></tr></tbody></table></section>`;
+  });
+  // cierre
+  const parcial = f.metrado != null ? Lector.r2(f.metrado * cu) : null;
+  h += `<div class="cierre"><div class="ec">` + CATS.map(([c]) => `<span class="k ${c}"><b>${f2(sub(c))}</b></span>`).join('<span class="igual">+</span>') +
+    `<span class="igual">=</span><span class="total">S/ ${f2(cu)}</span><span class="k">por ${esc(f.unidad || a.unidad)} · el precio unitario</span></div>`;
+  if (parcial != null) h += `<div class="ec"><span class="k">Metrado <b style="color:var(--tinta)">${f2(f.metrado)} ${esc(f.unidad)}</b></span><span class="igual">×</span>` +
+    `<span class="k">P.U. <b style="color:var(--tinta)">S/ ${f2(cu)}</b></span><span class="igual">=</span><span class="total ok">S/ ${f2(parcial)}</span><span class="k">parcial de la partida</span></div>`;
+  h += notaTitulo(f) + `</div>`;
+  h += otrosCampamentos(f);
+  cont.innerHTML = h;
+  $('#chkCuentas').addEventListener('change', e => { guardar('visor.cuentas', e.target.checked ? 'si' : 'no'); document.body.classList.toggle('sin-cuentas', !e.target.checked); });
+  cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => dondeSeUsa(b.dataset.ins, f.item)));
+  cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
+}
+
+function ancestros(f) {
+  const it = f.item.split('.'), r = [];
+  for (let k = 1; k < it.length; k++) { const j = porItemFila[it.slice(0, k).join('.')]; if (j != null) r.push(j); }
+  return r;
+}
+function miga(f) {
+  const a = ancestros(f);
+  if (!a.length) return '';
+  return `<nav class="miga">` + a.map(j => { const t = D.filas[j]; return `<button class="n${Math.min(t.nivel, 7)}" data-ir="${j}">${esc(t.item)} ${esc(titleCase(t.descripcion))}</button>`; }).join('<span>›</span>') + `</nav>`;
+}
+function notaTitulo(f) {
+  const a = ancestros(f).reverse();
+  if (!a.length) return `<div class="nota">Así se arma el costo directo: S/ ${f2(D.cd)}.</div>`;
+  const t = D.filas[a[0]];
+  const resto = a.slice(1).map(j => D.filas[j].item);
+  return `<div class="nota" style="--c:var(--nivel-${Math.min(t.nivel, 7)})">El parcial entra en el total del título <b>${esc(t.item)} ${esc(t.descripcion)} · S/ ${f2(t.total)}</b>` +
+    (resto.length ? `, ese en el de ${resto.join(', ese en el de ')}` : '') + `. Así se arma el costo directo: S/ ${f2(D.cd)}.</div>`;
+}
+function otrosCampamentos(f) {
+  const otras = (f.gemelas || []).filter(g => g !== f);
+  if (!otras.length) return `<div class="otros"><h3>La misma partida en otros campamentos <small>· no se repite en el presupuesto</small></h3></div>`;
+  const pu = f.apu?.cu ?? f.precio;
+  const dist = otras.filter(g => Math.abs((g.apu?.cu ?? g.precio) - pu) > 0.005).length;
+  const lista = otras.map(g => {
+    const p = g.apu?.cu ?? g.precio, d = p - pu, distinto = Math.abs(d) > 0.005;
+    return `<li class="${distinto ? 'distinto' : ''}" data-ir="${porItemFila[g.item]}"><span class="it">${esc(g.item)}</span><span>${esc(titleCase(g.grupo || '—'))}</span>` +
+      `<span class="pu2">S/ ${f2(p)}${distinto ? ` (${d > 0 ? '+' : ''}${f2(d)})` : ' ✓'}</span></li>`;
+  }).join('');
+  return `<div class="otros"><h3>La misma partida en otros campamentos <small>· ${otras.length + 1} veces en el presupuesto, ` +
+    (dist ? `${dist} con otro P.U.` : 'mismo P.U.') + `</small></h3><ul>${lista}</ul></div>`;
+}
+
+function dondeSeUsa(k, itemActual) {
+  const ins = D.insumos[k]; if (!ins) return;
+  const precios = [...new Set(ins.usos.map(u => u.precio).filter(p => p != null))];
+  const cat = Lector.NOMBRE_CAT[ins.categoria].toLowerCase();
+  const u = unidadVista(ins.unidad);
+  $('#usosTitulo').textContent = `${ins.descripcion} · ${ins.codigo}`;
+  const usos = ins.usos.slice().sort((x, y) => x.item.localeCompare(y.item, 'es', { numeric: true }));
+  const max = 400;
+  let h = `<div class="res">Precio <b>S/ ${precios.map(f2).join(' / ')}</b> por ${esc(u)} · en <b>${usos.length.toLocaleString('es-PE')}</b> de ${D.apus.length.toLocaleString('es-PE')} partidas · ${cat}</div>`;
+  if (precios.length > 1) h += `<p style="color:var(--rojo);font-size:var(--t-aux);margin:0 0 8px">Ojo: este insumo tiene ${precios.length} precios distintos; en el presupuesto el precio de un insumo debe ser único.</p>`;
+  h += `<p style="margin:8px 0 0;color:var(--gris);font-size:var(--t-aux)">Ordenadas por ítem, con la cantidad por unidad de partida. Clic para ir a la partida.</p><ul class="usos">`;
+  usos.slice(0, max).forEach(x => {
+    const fi = porItemFila[x.item], fr = D.filas[fi];
+    h += `<li class="${x.item === itemActual ? 'aqui' : ''}" data-ir="${fi}"><span class="it">${esc(x.item)}</span><span>${esc(fr ? fr.descripcion : '')}</span><span class="q">${f4(x.cantidad)} ${esc(u)}</span></li>`;
+  });
+  if (usos.length > max) h += `<li><span class="it">…</span><span style="color:var(--gris)">${(usos.length - max).toLocaleString('es-PE')} partidas más</span><span></span></li>`;
+  h += '</ul>';
+  $('#usosCuerpo').innerHTML = h;
+  $('#usosCuerpo').querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => { cerrar(); irA(+x.dataset.ir); }));
+  abrir('usos');
+  $('#usosCuerpo').scrollTop = 0;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+/* ══════════════════════════════════════════════════════════════════════
+   VidBIM · Visor de APU · tokens de diseño (25.09.2026)
+   Fuente: VidBIM-Marca/04-Color/paleta.md, láminas 02 y 03, y los colores
+   de categoría y de nivel de la app VidBIM Costos (Filas.cs, ColoresNivel.cs).
+   Se usa tal cual: <link rel="stylesheet" href="tokens.css">
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  color-scheme: light dark;
+
+  /* ── superficies y texto · tema claro ── */
+  --papel:#EDEFF2;        /* fondo de página (papel frío) */
+  --superficie:#FFFFFF;   /* paneles: árbol, APU, tarjetas */
+  --superficie-2:#F4F6F8; /* filas alternas, botón secundario, hover de fila */
+  --superficie-3:#E2E6EC; /* hover de botón, separadores gruesos */
+  --tinta:#111519;        /* texto principal */
+  --tinta-2:#39424C;      /* texto secundario (encabezados de tabla) */
+  --gris:#6C7681;         /* texto auxiliar: unidades, notas, «cuentas» */
+  --linea:#DCE3EA;        /* líneas de tabla y bordes suaves */
+  --linea-fuerte:#C7CFD8; /* bordes de inputs y botones sobre blanco */
+
+  /* ── marca ── */
+  --azul:#1F45DE;         /* acento: selección, P.U., enlaces, botón principal */
+  --azul-hover:#1A3BC2;
+  --azul-tinte:#DFE4FB;   /* fila seleccionada, chips */
+  --rojo:#C0332A;  --rojo-tinte:#FADCD9;   /* SOLO errores y revisiones */
+  --ok:#1B6F53;    --ok-tinte:#E3F1E4;     /* «cierra», comprobado */
+  --ambar:#8A5A00; --ambar-tinte:#FFF1C7;  /* avisos */
+
+  /* ── categorías del APU (idénticas a VidBIM Costos) ── */
+  --mo:#1F45DE;  --mo-tinte:#EAF0FE;   /* Mano de obra */
+  --mat:#2E7D32; --mat-tinte:#EAF6EC;  /* Materiales */
+  --eq:#C2610C;  --eq-tinte:#FDF1E4;   /* Equipo */
+  --sc:#7B3FB5;  --sc-tinte:#F3ECFB;   /* Subcontratos / Servicios */
+
+  /* ── niveles de título (Power Cost, como VidBIM Costos) ── */
+  --nivel-1:#E06123; --nivel-2:#676FFA; --nivel-3:#00C000; --nivel-4:#C000C0;
+  --nivel-5:#EC9B75; --nivel-6:#C0C000; --nivel-7:#00A0C0;
+
+  /* ── tipografía ── */
+  --f-marca:"Archivo","Helvetica Neue",Arial,sans-serif;          /* logotipo, títulos, el P.U. */
+  --f-texto:"IBM Plex Sans","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --f-datos:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace; /* códigos, cifras, cuentas */
+  --t-aux:12px;     /* notas, cuentas, unidades */
+  --t-tabla:13px;   /* filas del APU y del árbol */
+  --t-cuerpo:14px;  /* texto corrido */
+  --t-seccion:16px; /* nombre de la partida, título de categoría */
+  --t-total:20px;   /* subtotales de categoría, total del título */
+  --t-pu:30px;      /* el P.U. de la partida */
+  --t-marca:20px;   /* «VidBIM Visor de APU» en la cabecera */
+
+  /* ── medidas ── */
+  --radio:4px;
+  --u:8px;                 /* módulo de espaciado: 8, 16, 24, 32 */
+  --cabecera-alto:56px;
+  --arbol-ancho:360px;
+  --fila-alto:32px;
+}
+
+/* ── tema oscuro: el sistema lo pide y el usuario no ha forzado claro ── */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --papel:#0C1015; --superficie:#141A21; --superficie-2:#1B232C; --superficie-3:#232C36;
+    --tinta:#E7ECF1; --tinta-2:#B2BCC6; --gris:#7C8894;
+    --linea:#2A333D; --linea-fuerte:#333E49;
+    --azul:#6285FF; --azul-hover:#7A97FF; --azul-tinte:#182247;
+    --rojo:#E7695E; --rojo-tinte:#3A1D1B; --ok:#4FB791; --ok-tinte:#12291C; --ambar:#D9A44E; --ambar-tinte:#33290F;
+    --mo:#6285FF;  --mo-tinte:#182247;
+    --mat:#4FB791; --mat-tinte:#12291C;
+    --eq:#E39A55;  --eq-tinte:#2E2116;
+    --sc:#B08CE8;  --sc-tinte:#251B33;
+    --nivel-1:#F0895A; --nivel-2:#8C93FF; --nivel-3:#4AD66D; --nivel-4:#D96BD9;
+    --nivel-5:#F2B08F; --nivel-6:#D9D94A; --nivel-7:#46C3E0;
+  }
+}
+/* ── tema oscuro forzado por el usuario (botón) ── */
+:root[data-theme="dark"]{
+  --papel:#0C1015; --superficie:#141A21; --superficie-2:#1B232C; --superficie-3:#232C36;
+  --tinta:#E7ECF1; --tinta-2:#B2BCC6; --gris:#7C8894;
+  --linea:#2A333D; --linea-fuerte:#333E49;
+  --azul:#6285FF; --azul-hover:#7A97FF; --azul-tinte:#182247;
+  --rojo:#E7695E; --rojo-tinte:#3A1D1B; --ok:#4FB791; --ok-tinte:#12291C; --ambar:#D9A44E; --ambar-tinte:#33290F;
+  --mo:#6285FF;  --mo-tinte:#182247;
+  --mat:#4FB791; --mat-tinte:#12291C;
+  --eq:#E39A55;  --eq-tinte:#2E2116;
+  --sc:#B08CE8;  --sc-tinte:#251B33;
+  --nivel-1:#F0895A; --nivel-2:#8C93FF; --nivel-3:#4AD66D; --nivel-4:#D96BD9;
+  --nivel-5:#F2B08F; --nivel-6:#D9D94A; --nivel-7:#46C3E0;
+}
+
+/* La cabecera es siempre de tinta, en los dos temas (como la app de escritorio). */
+:root{ --cabecera-fondo:#111519; --cabecera-texto:#EDEFF2; --cabecera-azul:#6285FF; --cabecera-linea:#3A4048; --cabecera-hover:#1B232C; }
+
+/* Base mínima */
+html{ background:var(--papel); color:var(--tinta); font-family:var(--f-texto); font-size:var(--t-cuerpo); line-height:1.5; -webkit-font-smoothing:antialiased; }
+.datos, .num{ font-family:var(--f-datos); font-variant-numeric:tabular-nums; }
+.num{ text-align:right; }
