@@ -513,9 +513,9 @@ function abrirTablero() {
   F.forEach(f => f.padre = f.item.includes('.') ? f.item.slice(0, f.item.lastIndexOf('.')) : null);
   F.forEach(f => { f.tieneHijos = false; });
   F.forEach(f => { if (f.padre && idx[f.padre] != null) F[idx[f.padre]].tieneHijos = true; });
-  // Campamento de cada partida: su título de nivel 2 (como el Excel del cuadro).
+  // Frente de trabajo de cada partida: su título de nivel 2.
   F.forEach(f => { const it2 = f.item.split('.').slice(0, 2).join('.'); const t = F[idx[it2]]; f.grupo = t && !t.esPartida ? t.descripcion : ''; });
-  // La misma partida en otros campamentos: mismo nombre y unidad.
+  // La misma partida en otros frentes de trabajo: mismo nombre y unidad.
   const gemelas = {};
   F.filter(f => f.esPartida).forEach(f => { const k = f.descripcion.trim().toUpperCase() + '|' + (f.unidad || '').toUpperCase(); (gemelas[k] ||= []).push(f); f.gemelas = gemelas[k]; });
 
@@ -787,7 +787,7 @@ function notaTitulo(f) {
 }
 function otrosCampamentos(f) {
   const otras = (f.gemelas || []).filter(g => g !== f);
-  if (!otras.length) return `<div class="otros"><h3>La misma partida en otros campamentos <small>· no se repite en el presupuesto</small></h3></div>`;
+  if (!otras.length) return `<div class="otros"><h3>La misma partida en otros frentes de trabajo <small>· no se repite en el presupuesto</small></h3></div>`;
   const pu = f.apu?.cu ?? f.precio;
   const dist = otras.filter(g => Math.abs((g.apu?.cu ?? g.precio) - pu) > 0.005).length;
   const lista = otras.map(g => {
@@ -795,7 +795,7 @@ function otrosCampamentos(f) {
     return `<li class="${distinto ? 'distinto' : ''}" data-ir="${porItemFila[g.item]}"><span class="it">${esc(g.item)}</span><span>${esc(titleCase(g.grupo || '—'))}</span>` +
       `<span class="pu2">S/ ${f2(p)}${distinto ? ` (${d > 0 ? '+' : ''}${f2(d)})` : ' ✓'}</span></li>`;
   }).join('');
-  return `<div class="otros"><h3>La misma partida en otros campamentos <small>· ${otras.length + 1} veces en el presupuesto, ` +
+  return `<div class="otros"><h3>La misma partida en otros frentes de trabajo <small>· ${otras.length + 1} veces en el presupuesto, ` +
     (dist ? `${dist} con otro P.U.` : 'mismo P.U.') + `</small></h3><ul>${lista}</ul></div>`;
 }
 
