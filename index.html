@@ -132,7 +132,10 @@ table.grilla{width:100%;border-collapse:collapse;font-size:var(--t-tabla)}
 .herrapu{display:flex;gap:12px;align-items:center;padding:0 16px 12px;font-size:var(--t-aux);color:var(--gris);flex-wrap:wrap}
 .herrapu label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--tinta-2)}
 .cat{border-top:1px solid var(--linea)}
-.cat header{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:baseline;padding:12px 16px 6px}
+.cat header{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;align-items:baseline;padding:12px 16px 6px}
+.cat header .vercalc{align-self:center;font-size:var(--t-aux);padding:3px 10px;border:1px solid var(--linea-fuerte);background:var(--superficie);color:var(--tinta-2);border-radius:999px;white-space:nowrap}
+.cat header .vercalc:hover{border-color:var(--c);color:var(--c)}
+.cat header .vercalc[aria-pressed="true"]{background:var(--t);border-color:var(--c);color:var(--c);font-weight:600}
 .cat header .punto{width:10px;height:10px;border-radius:2px;background:var(--c);align-self:center}
 .cat header h2{margin:0;font-size:var(--t-seccion);font-weight:600;color:var(--c)}
 .cat header h2 small{font-weight:400;color:var(--gris);font-size:var(--t-aux);margin-left:8px}
@@ -157,7 +160,10 @@ tr.cuenta .r{display:inline-block;font-size:10px;padding:0 5px;border-radius:999
 tr.cuenta .res{color:var(--tinta);font-weight:600}
 tr.cuenta .flecha,tr.cuenta .igual{color:var(--gris)}
 tr.cuenta .mal{color:var(--rojo)}
-body.sin-cuentas tr.cuenta{display:none}
+/* El cálculo va apagado: se ve con «Ver cálculo» de su categoría o con clic en la línea. */
+.cat:not(.con-calculo) tr.cuenta:not(.abierta){display:none}
+tr.linea{cursor:pointer}
+tr.cuenta .fin{display:inline-flex;gap:8px;align-items:center;white-space:nowrap}
 tr.subtotal td{background:var(--t);font-family:var(--f-datos);font-weight:600;border-bottom:0}
 tr.subtotal td:first-child{color:var(--c)}
 .vacia{padding:8px 16px 16px;color:var(--gris);font-size:var(--t-aux)}
@@ -245,7 +251,8 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   tr.cuenta td{padding:8px}
   tr.subtotal{display:flex;justify-content:space-between;background:var(--t)}
   tr.subtotal td{width:auto}
-  .cat header{grid-template-columns:auto 1fr auto;grid-template-areas:"p h s" "p q q"}
+  .cat header{grid-template-columns:auto 1fr auto;grid-template-areas:"p h s" "p q b"}
+  .cat header .vercalc{grid-area:b;justify-self:end}
   .cat header .punto{grid-area:p}.cat header h2{grid-area:h}.cat header .sub{grid-area:s}.cat header .pct{grid-area:q}
   .otros ul{grid-template-columns:1fr}
 }
@@ -629,8 +636,9 @@ document.addEventListener('keydown', e => {
 });
 
 // ─────────── APU ───────────
-const mostrarCuentas = () => leer('visor.cuentas') !== 'no';
-document.body.classList.toggle('sin-cuentas', !mostrarCuentas());
+// Categorías con «Ver cálculo» encendido (se recuerdan en este navegador; por defecto ninguna).
+let calculoEn = new Set();
+try { calculoEn = new Set(JSON.parse(leer('visor.calculo') || '[]')); } catch (e) {}
 
 function plural(s, n) {
   if (n <= 1) return s;
@@ -649,16 +657,16 @@ function cuenta(l, apu) {
     const bruto = l.tipo === 'tiempo' ? l.cuadrilla * 8 / rend : l.cuadrilla / rend;
     const base = l.tipo === 'tiempo' ? `${fn(l.cuadrilla)} cuad × 8 h ÷ ${f4(rend)} ${esc(ru)}/día` : `${fn(l.cuadrilla)} cuad ÷ ${f4(rend)} ${esc(ru)}/día`;
     tramos.push(`<span>${base}</span>${eq}` + (cerca(bruto, l.cantidad) ? `<span class="res">${f4(l.cantidad)} ${esc(u)}</span>`
-      : `<span>${+bruto.toFixed(8)}</span>${fl}<span class="res">${f4(l.cantidad)} ${esc(u)}</span>${R4}`));
+      : `<span>${+bruto.toFixed(8)}</span><span class="fin">${fl}<span class="res">${f4(l.cantidad)} ${esc(u)}</span>${R4}</span>`));
   }
   if (l.tipo === 'pmo') {
     const bruto = (l.cantidad || 0) * l.calcPrecio / 100;
     tramos.push(`<span>${fn(l.cantidad)} % × S/ ${f2(l.calcPrecio)} (mano de obra)</span>${eq}` + (cerca(bruto, l.parcial) ? `<span class="res">S/ ${f2(l.parcial)}</span>`
-      : `<span>${+bruto.toFixed(6)}</span>${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}`));
+      : `<span>${+bruto.toFixed(6)}</span><span class="fin">${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}</span>`));
   } else {
     const bruto = (l.cantidad || 0) * (l.precio || 0);
     tramos.push(`<span>${f4(l.cantidad)} ${esc(u)} × S/ ${f2(l.precio)}</span>${eq}` + (cerca(bruto, l.parcial) ? `<span class="res">S/ ${f2(l.parcial)}</span>`
-      : `<span>${+bruto.toFixed(6)}</span>${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}`));
+      : `<span>${+bruto.toFixed(6)}</span><span class="fin">${fl}<span class="res">S/ ${f2(l.parcial)}</span>${R2}</span>`));
   }
   let extra = '';
   if (Math.abs(l.calcParcial - (l.parcial || 0)) > 0.005) extra = `<span class="mal">el Excel trae S/ ${f2(l.parcial)}; la cuenta da S/ ${f2(l.calcParcial)}</span>`;
@@ -706,13 +714,15 @@ function pintarApu(f) {
   // barra de peso
   h += `<div class="peso"><div class="barra">` + CATS.filter(([c]) => sub(c) > 0).map(([c, n]) => `<i class="${c}" style="width:${pct(c).toFixed(2)}%" title="${n} ${pct(c).toFixed(2)} %"></i>`).join('') +
     `</div><div class="ley">` + CATS.map(([c, n]) => `<span class="${c}">${n} <b>${f2(sub(c))}</b>${sub(c) > 0 ? ` · ${pct(c).toFixed(1)} %` : ''}</span>`).join('') + `</div></div>`;
-  h += `<div class="herrapu"><label><input type="checkbox" id="chkCuentas" ${mostrarCuentas() ? 'checked' : ''}> Mostrar la cuenta de cada línea</label><span>·</span><span>Clic en un insumo: dónde más se usa</span></div>`;
+  h += `<div class="herrapu"><span>«Ver cálculo»: de dónde sale cada número</span><span>·</span><span>Clic en una línea: su cálculo</span><span>·</span><span>Clic en un insumo: dónde más se usa</span></div>`;
   // categorías
   CATS.forEach(([c, n]) => {
     const ls = a.lineas.filter(l => l.categoria === c);
     const extra = c === 'mo' && ls.length && ls.every(l => /^hh$/i.test(l.unidad)) ? ' · en hh' : '';
-    h += `<section class="cat ${c}"><header><span class="punto"></span><h2>${n} <small>${ls.length} ${ls.length === 1 ? 'línea' : 'líneas'}${extra}</small></h2>` +
-      `<span class="pct">${sub(c) > 0 ? pct(c).toFixed(2) + ' % del P.U.' : ''}</span><span class="sub"><small>S/</small>${f2(sub(c))}</span></header>`;
+    const enc = ls.length > 0 && calculoEn.has(c);
+    h += `<section class="cat ${c}${enc ? ' con-calculo' : ''}" data-cat="${c}"><header><span class="punto"></span><h2>${n} <small>${ls.length} ${ls.length === 1 ? 'línea' : 'líneas'}${extra}</small></h2>` +
+      `<span class="pct">${sub(c) > 0 ? pct(c).toFixed(2) + ' % del P.U.' : ''}</span><span class="sub"><small>S/</small>${f2(sub(c))}</span>` +
+      (ls.length ? `<button class="vercalc" aria-pressed="${enc}" title="Mostrar u ocultar el cálculo de cada línea de ${n.toLowerCase()}">Ver cálculo</button>` : '') + `</header>`;
     if (!ls.length) { h += `<div class="vacia">Esta partida no tiene ${n.toLowerCase()}.</div></section>`; return; }
     h += `<table class="lineas"><thead><tr><th>Código</th><th>Insumo</th><th>Und.</th>` +
       `<th class="num">Cuadrilla${c === 'mo' || c === 'eq' ? ' ' + q(AYUDA_COL.cuadrilla, 'cuadrilla') : ''}</th>` +
@@ -737,7 +747,18 @@ function pintarApu(f) {
   h += notaTitulo(f) + `</div>`;
   h += otrosCampamentos(f);
   cont.innerHTML = h;
-  $('#chkCuentas').addEventListener('change', e => { guardar('visor.cuentas', e.target.checked ? 'si' : 'no'); document.body.classList.toggle('sin-cuentas', !e.target.checked); });
+  cont.querySelectorAll('.vercalc').forEach(b => b.addEventListener('click', () => {
+    const s = b.closest('.cat'), c = s.dataset.cat, si = !s.classList.contains('con-calculo');
+    s.classList.toggle('con-calculo', si); b.setAttribute('aria-pressed', si);
+    s.querySelectorAll('tr.cuenta.abierta').forEach(x => x.classList.remove('abierta'));
+    if (si) calculoEn.add(c); else calculoEn.delete(c);
+    guardar('visor.calculo', JSON.stringify([...calculoEn]));
+  }));
+  // Clic en una línea (fuera del nombre del insumo): solo su cálculo.
+  cont.querySelectorAll('tr.linea').forEach(tr => tr.addEventListener('click', e => {
+    if (e.target.closest('td.ins button')) return;
+    const cu = tr.nextElementSibling; if (cu && cu.classList.contains('cuenta')) cu.classList.toggle('abierta');
+  }));
   cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => dondeSeUsa(b.dataset.ins, f.item)));
   cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
 }
