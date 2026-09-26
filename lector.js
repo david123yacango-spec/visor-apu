@@ -3,6 +3,8 @@
  *   · «Análisis de Costos Unitarios» (hoja SP1, SP4…): un bloque por partida y, si las hay, los bloques
  *     «Sub Partida» con el APU de cada subpartida.
  *   · «Presupuesto» (hoja SP1, SP4…): ítems desde la fila 10.
+ * También los reportes de Delphin Express («PRESUPUESTO DE OBRA» y «Analisis de Costos Unitarios», .xls o .xlsx):
+ * sus APU pueden venir con la numeración de otra versión del presupuesto, así que se cruzan por nombre.
  * Recibe el libro ya abierto con SheetJS (XLSX.read). Todo pasa en el navegador.
  * Mismas reglas que vidBIM Costos (Nucleo/PowerCost/ImportadorPowerCost.cs y el motor).
  */
@@ -17,6 +19,27 @@
   var RX_REND = /^\s*([\d,]+(?:\.\d+)?)?\s*-?\s*(.*?)\s*\/\s*DIA\s*$/i;
   var RX_CU = /Costo Unitario por\s+(.*?)\s*:/i;
   var RX_ITEM = /^\d+(\.\d+)*$/;
+  // Delphin Express
+  var RX_REND_D = /^\s*Rendimiento\s*:\s*([\d,]+(?:\.\d+)?)?\s*:?\s*(.*?)\s*(?:\/\s*d[ií]a)?\s*$/i;
+  var RX_CU_D = /^\s*Costo\s+unit\.?\s+por\s+(.*?)\s*:?\s*$/i;
+  function categoriaDelphin(s) {
+    var k = String(s || '').toUpperCase().replace(/[^A-Z]/g, '');
+    return { MANODEOBRA: 'mo', MATERIALES: 'mat', MATERIAL: 'mat', EQUIPOS: 'eq', EQUIPO: 'eq', EQUIPOSYHERRAMIENTAS: 'eq', HERRAMIENTAS: 'eq',
+             SUBCONTRATOS: 'sc', SUBCONTRATO: 'sc', SERVICIOS: 'sc', SUBPARTIDAS: 'sp' }[k] || null;
+  }
+  /** ¿Reporte de Delphin? Título «PRESUPUESTO DE OBRA» o bloques «Partida: ítem» en la columna A. */
+  function esDelphin(filas) {
+    for (var r = 0; r < Math.min(filas.length, 40); r++) {
+      var a = txt(filas[r], 0), f = filas[r];
+      if (a && /^\s*Partida\s*:/i.test(a)) return true;
+      if (f.some(function (v) { return typeof v === 'string' && /^\s*PRESUPUESTO DE OBRA\s*$/i.test(v); })) return true;
+    }
+    return false;
+  }
+  /** Nombre para cruzar partida y APU: mayúsculas, sin tildes ni signos. */
+  function nombre(s) {
+    return String(s || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9Ñ]+/g, ' ').trim();
+  }
 
   function r2(x) { return Math.round((x + (x >= 0 ? 1e-9 : -1e-9)) * 100) / 100; }
   function r4(x) { return Math.round((x + (x >= 0 ? 1e-11 : -1e-11)) * 10000) / 10000; }
@@ -80,6 +103,7 @@
     var filas = filasDe(XLSX, ws).slice(0, 15);
     for (var r = 0; r < filas.length; r++) {
       var t = (filas[r] || []).filter(function (v) { return typeof v === 'string'; }).join(' ');
+      if (/^\s*PRESUPUESTO DE OBRA\b/i.test(t)) return 'presupuesto';   // Delphin
       if (/An.lisis de Costos Unitarios/i.test(t)) return 'apu';
       if (/^\s*Presupuesto\b/i.test(t)) return 'presupuesto';
     }
@@ -92,6 +116,7 @@
    */
   function leerApu(XLSX, wb) {
     var filas = filasDe(XLSX, hojaDe(XLSX, wb));
+    if (esDelphin(filas)) return leerApuDelphin(filas);
     var apus = [], subpartidas = {}, cur = null, cat = null;
     function nuevo(r, item, descripcion, rendTexto) {
       var a = { fila: r + 1, item: item, descripcion: descripcion, rendTexto: rendTexto, unidad: '', rendimiento: null, lineas: [], subtotales: {}, cu: null };
@@ -130,9 +155,79 @@
     return { encabezado: encabezado(filas, 10), apus: apus, subpartidas: subpartidas };
   }
 
+  /**
+   * APU de Delphin: «Partida: ítem» y «Rendimiento: …» (N), el nombre debajo, «Costo unit. por und» (N) con el CU en Q,
+   * categorías en A (MANO DE OBRA, MATERIALES, EQUIPOS, SUB-CONTRATOS) y líneas: código A, descripción B, unidad J,
+   * recursos K, cantidad M, precio P, parcial Q.
+   */
+  function leerApuDelphin(filas) {
+    var apus = [], cur = null, cat = null, enLineas = false;
+    for (var r = 0; r < filas.length; r++) {
+      var f = filas[r], a = txt(f, 0), b = txt(f, 1);
+      a = a == null ? null : a.trim();
+      if (a && /^Partida\s*:/i.test(a)) {
+        cur = { fila: r + 1, item: a.replace(/^Partida\s*:/i, '').trim(), descripcion: '', rendTexto: (txt(f, 13) || '').trim(), unidad: '', rendimiento: null,
+                lineas: [], subtotales: {}, cu: null };
+        var m = RX_REND_D.exec(cur.rendTexto);
+        if (m) { if (m[1]) cur.rendimiento = parseFloat(m[1].replace(/,/g, '')); cur.unidad = (m[2] || '').trim(); }
+        cur.rendTexto = cur.rendTexto.replace(/^Rendimiento\s*:\s*/i, '');
+        apus.push(cur); cat = null; enLineas = false; continue;
+      }
+      if (!cur) continue;
+      var mc = RX_CU_D.exec(txt(f, 13) || '');
+      if (mc) { cur.cu = num(f, 16); cur.unidad = mc[1].trim(); }
+      if (!enLineas) {
+        if (a && /^C/.test(a) && b && /^Descrip/i.test(b.trim())) { enLineas = true; continue; }
+        if (a && !cur.descripcion) cur.descripcion = a;   // el nombre va debajo de «Partida:»
+        continue;
+      }
+      if (!a) continue;
+      var c = b == null ? categoriaDelphin(a) : null;
+      if (c) { cat = c; cur.subtotales[c] = num(f, 16) || 0; continue; }
+      if (cat && b != null) {
+        var k = txt(f, 10);
+        cur.lineas.push({
+          fila: r + 1, categoria: cat, codigo: a, descripcion: b.trim(), unidad: (txt(f, 9) || '').trim(),
+          cuadrilla: k != null && /\d/.test(k) ? num(f, 10) : null, cantidad: num(f, 12), precio: num(f, 15), parcial: num(f, 16)
+        });
+      }
+    }
+    var e = {}, ENC = { PROYECTO: 'Proyecto', PRESUPUESTO: 'Sub Presupuesto', UBICACION: 'Ubicación' };
+    for (var i = 0; i < Math.min(filas.length, 12); i++) { var k0 = (txt(filas[i], 0) || '').trim().toUpperCase(); if (ENC[k0] && txt(filas[i], 4)) e[ENC[k0]] = txt(filas[i], 4).trim(); }
+    return { encabezado: e, apus: apus, subpartidas: {}, formato: 'delphin' };
+  }
+
+  /** Presupuesto de Delphin: ítem A, descripción B, unidad L, metrado M, precio O, total P; la fila del subpresupuesto se salta. */
+  function leerPresupuestoDelphin(filas) {
+    var e = {}, ENC = { PROYECTO: 'Proyecto', PRESUPUESTO: 'Sub Presupuesto', UBICACION: 'Ubicación' }, desde = -1, lista = [];
+    for (var r = 0; r < filas.length; r++) {
+      var a = (txt(filas[r], 0) || '').trim();
+      if (/^Item$/i.test(a)) { desde = r + 1; break; }
+      if (ENC[a.toUpperCase()] && txt(filas[r], 4)) e[ENC[a.toUpperCase()]] = txt(filas[r], 4).trim();
+    }
+    for (r = Math.max(desde, 0); r < filas.length; r++) {
+      var f = filas[r], item = (txt(f, 0) || '').trim();
+      if (!RX_ITEM.test(item)) continue;
+      var und = txt(f, 11);
+      lista.push({
+        fila: r + 1, item: item, descripcion: (txt(f, 1) || '').trim(), unidad: und == null ? null : und.trim(),
+        metrado: num(f, 12), precio: num(f, 14), parcial: und != null ? num(f, 15) : null, subtotal: null, total: und == null ? num(f, 15) : null,
+        nivel: item.split('.').length, esPartida: und != null
+      });
+    }
+    // Subpresupuesto: fila sin unidad seguida de otra con el mismo ítem («01 MANTENIMIENTO VIAL…» y «01 TRABAJOS…»).
+    lista = lista.filter(function (x, i) {
+      var sig = lista[i + 1];
+      if (!x.esPartida && sig && sig.item === x.item) { if (!e['Sub Presupuesto']) e['Sub Presupuesto'] = x.descripcion; return false; }
+      return true;
+    });
+    return { encabezado: e, filas: lista, formato: 'delphin' };
+  }
+
   /** Presupuesto: lista de { item, descripcion, unidad, metrado, precio, parcial, total, nivel, esPartida } */
   function leerPresupuesto(XLSX, wb) {
     var filas = filasDe(XLSX, hojaDe(XLSX, wb)), lista = [];
+    if (esDelphin(filas)) return leerPresupuestoDelphin(filas);
     for (var r = 9; r < filas.length; r++) {
       var f = filas[r], item = (txt(f, 0) || '').trim();
       if (!RX_ITEM.test(item)) continue;
@@ -198,10 +293,31 @@
     apus.forEach(function (a) { a.lineas.forEach(function (l) { if (l.categoria === 'sp') l.subpartida = subpartidas[l.codigo] || null; }); });
     var porItem = {};
     apus.forEach(function (a) { porItem[a.item] = a; });
+    var avisos = [];
+    if (pre && apu && (apu.formato === 'delphin' || pre.formato === 'delphin')) {
+      // Delphin: la numeración de los APU puede ser de otra versión del presupuesto → cada partida toma el APU de su
+      // nombre (si hay varios, el de igual P.U.), con su propio ítem.
+      var porNombre = {}, usados = [];
+      apus.forEach(function (a) { (porNombre[nombre(a.descripcion)] = porNombre[nombre(a.descripcion)] || []).push(a); });
+      porItem = {};
+      var propios = [];
+      pre.filas.forEach(function (f) {
+        if (!f.esPartida) return;
+        var c = porNombre[nombre(f.descripcion)] || [];
+        var igualPu = function (a) { return a.cu != null && f.precio != null && Math.abs(a.cu - f.precio) < 0.005; };
+        var a = c.filter(function (x) { return igualPu(x) && x.item === f.item; })[0] || c.filter(igualPu)[0] || c.filter(function (x) { return x.item === f.item; })[0] || c[0];
+        if (!a) return;
+        if (usados.indexOf(a) < 0) usados.push(a);
+        var copia = Object.assign({}, a, { item: f.item, itemOrigen: a.item });
+        porItem[f.item] = copia; propios.push(copia);
+      });
+      var sobran = apus.filter(function (a) { return usados.indexOf(a) < 0 && !usados.some(function (u) { return nombre(u.descripcion) === nombre(a.descripcion); }); });
+      if (sobran.length) avisos.push(sobran.length + ' APU no están en el presupuesto: ' + sobran.slice(0, 6).map(function (a) { return a.item + ' ' + a.descripcion; }).join(', ') + (sobran.length > 6 ? '…' : ''));
+      apus = propios;
+    }
     var filas = pre ? pre.filas : apus.map(function (a) {
       return { item: a.item, descripcion: a.descripcion, unidad: a.unidad, metrado: null, precio: a.cu, parcial: null, nivel: 1, esPartida: true };
     });
-    var avisos = [];
     // Títulos que el Excel del presupuesto trae de otros ítems (sin APU) y partidas sin APU.
     filas.forEach(function (f) {
       if (!f.esPartida) return;
@@ -223,6 +339,7 @@
     var cdTitulos = pre ? r2(filas.filter(function (f) { return !f.esPartida && f.nivel === 1; }).reduce(function (s, f) { return s + (f.total || 0); }, 0)) : null;
     return {
       encabezado: Object.assign({}, apu ? apu.encabezado : {}, pre ? pre.encabezado : {}),
+      formato: (pre && pre.formato) || (apu && apu.formato) || 'powercost',
       filas: filas, apus: apus, porItem: porItem, insumos: insumos, subpartidas: subpartidas, cd: cd, cdTitulos: cdTitulos, avisos: avisos,
       conDiferencias: apus.filter(function (a) { return a.diferencias.length; })
     };

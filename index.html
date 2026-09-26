@@ -580,7 +580,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
       <div class="guardados" id="guardados" hidden></div>
       <div class="caja" data-tipo="presupuesto" tabindex="0">
         <span class="nom">Presupuesto</span>
-        <span class="esp">Excel «Presupuesto» exportado de Power Cost o VidBIM Costos</span>
+        <span class="esp">Excel «Presupuesto» exportado de Power Cost, VidBIM Costos o Delphin</span>
       </div>
       <div class="caja" data-tipo="apu" tabindex="0">
         <span class="nom">APU</span>
@@ -747,7 +747,7 @@ async function recibir(archivos) {
       tipo = Lector.tipoDe(XLSX, wb);
       if (tipo === 'apu') cargados.apu = { nombre: a.name, leido: Lector.leerApu(XLSX, wb) };
       else if (tipo === 'presupuesto') cargados.presupuesto = { nombre: a.name, leido: Lector.leerPresupuesto(XLSX, wb) };
-      else error = `«${a.name}» no parece un Excel de Presupuesto ni de APU exportado de Power Cost (hoja SP1).`;
+      else error = `«${a.name}» no parece un Excel de Presupuesto ni de APU exportado de Power Cost, VidBIM Costos o Delphin.`;
     } catch (x) { error = `No se pudo leer «${a.name}».`; }
     if (error) marcarError(error);
   }
