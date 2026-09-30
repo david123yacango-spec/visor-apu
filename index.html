@@ -456,6 +456,30 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
 #balance .pareto .ley b{font-family:var(--f-datos);font-weight:600;color:var(--tinta)}
 #balance .pareto .ley .k{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 #balance .pareto label{margin-left:auto;display:flex;gap:6px;align-items:center;cursor:pointer}
+/* Pareto de los 15 mayores (como vidBIM Costos): barras A/B/C, acumulado, raya del 80 %, globo y clic */
+#balance .vercurva{display:inline-flex;gap:6px;align-items:center;margin-top:10px;padding:2px 0;background:none;border:0;color:var(--azul);font:inherit;font-size:var(--t-cuerpo);cursor:pointer}
+#balance .vercurva .gl{display:inline-block;font-size:10px;transition:transform .15s}
+#balance .vercurva[aria-expanded="false"] .gl{transform:rotate(-90deg)}
+#balance .curva{position:relative;margin-top:6px}
+#balance .curva svg{display:block;width:100%;height:210px;cursor:pointer;user-select:none}
+#balance .curva .rej{stroke:var(--linea);stroke-width:1}
+#balance .curva .eje{fill:var(--gris);font-family:var(--f-datos);font-size:10px}
+#balance .curva .nom{fill:var(--gris);font-size:9.5px}
+#balance .curva .b-A{fill:var(--azul)}
+#balance .curva .b-B{fill:#8FA3F5}
+#balance .curva .b-C{fill:var(--gris);opacity:.55}
+#balance .curva .p80{stroke:var(--tinta);stroke-width:1;stroke-dasharray:4 3}
+#balance .curva .t80{fill:var(--tinta);font-family:var(--f-datos);font-size:10px;font-weight:600}
+#balance .curva .acum{fill:none;stroke:var(--tinta);stroke-width:1.6}
+#balance .curva .pto{fill:var(--superficie);stroke:var(--tinta);stroke-width:1.6}
+#balance .curva .ley2{fill:var(--tinta);font-size:12px;font-weight:600}
+#balance .curva .sel{fill:none;stroke:var(--tinta);stroke-width:2}
+#balance .curva .dato{fill:var(--azul);font-size:11.5px;font-weight:600}
+#balance .curva .hit{fill:transparent}
+#balance .curva .globo{position:absolute;pointer-events:none;background:var(--tinta);color:var(--superficie);border-radius:6px;padding:6px 9px;font-size:var(--t-aux);line-height:1.35;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.18);transform:translate(-50%,-100%);z-index:5}
+#balance .curva .globo[hidden]{display:none}
+#balance .curva .globo b{font-family:var(--f-datos)}
+#balance table.bal tr.resaltada td{background:var(--azul-tinte);transition:background .3s}
 #balance .abc{display:inline-block;font-family:var(--f-datos);font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:999px;border:1px solid transparent}
 #balance .abc.A{background:var(--azul-tinte);color:var(--azul);border-color:var(--azul-tinte)}
 #balance .abc.B{background:var(--superficie-3);color:var(--tinta-2)}
@@ -1504,7 +1528,9 @@ function pintarBalanceRes() {
     `<div class="ley"><span><i class="k" style="background:var(--azul)"></i><b>A · ${A.length} insumos</b> hacen el ${p(sA).toFixed(0)} % del costo (S/ ${f2(sA)})</span>` +
     `<span><i class="k" style="background:#8FA3F5"></i><b>B · ${B.length}</b> el siguiente ${p(sB).toFixed(0)} %</span>` +
     `<span><i class="k" style="background:var(--superficie-3);border:1px solid var(--linea-fuerte)"></i><b>C · ${C.length}</b> el ${p(sC).toFixed(0)} % restante</span>` +
-    `<span style="color:var(--gris)">La barra es el costo acumulado; la raya negra marca el 80 %.</span></div></section>`;
+    `<span style="color:var(--gris)">La barra es el costo acumulado; la raya negra marca el 80 %.</span></div>` +
+    `<button class="vercurva" id="balVerCurva" aria-expanded="${curvaAbierta() ? 'true' : 'false'}" aria-controls="balCurva"><span class="gl">▾</span>Ver la curva ABC (Pareto de los ${Math.min(15, d.lista.length)} mayores)</button>` +
+    `<div class="curva" id="balCurva"${curvaAbierta() ? '' : ' hidden'}></div></section>`;
   // Tabla agrupada
   const col = (k, n, num) => `<th class="${num ? 'num' : ''}${b.orden === k ? ' orden' : ''}${num === 'oc' ? ' oc' : ''}" data-orden="${k}">${n}</th>`;
   h += `<section class="panel" style="overflow:auto"><table class="bal"><thead><tr>${col('codigo', 'Código')}${col('nombre', 'Insumo')}<th>Und.</th>${col('cantidad', 'Cantidad', true)}${col('precio', 'Precio S/', true)}${col('costo', 'Costo S/', true)}<th class="num">% del total</th><th class="oc">ABC</th>${col('partidas', 'Partidas', 'oc')}</tr></thead>`;
@@ -1537,7 +1563,97 @@ function pintarBalanceRes() {
   r.querySelectorAll('[data-abrir]').forEach(x => x.addEventListener('click', () => { b.abiertos.add(x.dataset.abrir); pintarBalanceRes(); }));
   r.querySelectorAll('td.ins button').forEach(x => x.addEventListener('click', () => dondeSeUsa(x.dataset.ins, null, balAlc || undefined)));
   $('#balLimpiar2')?.addEventListener('click', () => $('#balLimpiar').click());
+  $('#balVerCurva').addEventListener('click', () => {
+    const abrir = !curvaAbierta();
+    try { localStorage.setItem('visor.curva', abrir ? '1' : '0'); } catch { }
+    $('#balVerCurva').setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    $('#balCurva').hidden = !abrir;
+    if (abrir) pintarPareto();
+  });
+  pintarPareto();
 }
+
+// ───────────── Pareto de los 15 mayores (como la curva ABC de vidBIM Costos) ─────────────
+// Barras con el costo de los 15 insumos mayores del alcance (A azul, B azul claro, C gris) y la línea del acumulado sobre
+// el costo de todos, con la raya punteada del 80 %; eje izquierdo en S/ y derecho en %. Globo al pasar el mouse; clic en
+// una barra: la marca, pone su dato arriba y lleva al insumo en la tabla. Siempre sobre todo el alcance (como la barra ABC).
+let paretoSel = -1, paretoAlc = null;
+function curvaAbierta() { try { return localStorage.getItem('visor.curva') !== '0'; } catch { return true; } }
+function cortoPareto(nombre) {
+  let w = String(nombre).trim().split(/\s+/).find(x => x.length > 1 && !x.startsWith('(')) || String(nombre);
+  w = w.replace(/^[,.;]+|[,.;]+$/g, '');
+  return w.length <= 9 ? w : w.slice(0, 8) + '.';
+}
+function abreviarPareto(v) { return v >= 1e6 ? (v / 1e6).toFixed(1).replace(/\.0$/, '') + ' M' : v >= 1e3 ? (v / 1e3).toFixed(1).replace(/\.0$/, '') + ' mil' : Math.round(v).toLocaleString('en-US'); }
+function pintarPareto() {
+  const cont = $('#balCurva');
+  if (!cont || cont.hidden) return;
+  const d = datosBalance();
+  if (paretoAlc !== d.alc) { paretoSel = -1; paretoAlc = d.alc; }
+  const top = d.lista.slice(0, 15), total = d.total;
+  const w = Math.max(cont.clientWidth, 280), h = 210;
+  if (!top.length || !total) { cont.innerHTML = `<p style="color:var(--gris);margin:8px 0">Sin insumos con costo en este alcance.</p>`; return; }
+  const izq = 62, der = 40, arriba = 22, abajo = 32, x0 = izq, x1 = w - der, y0 = arriba, y1 = h - abajo, alto = y1 - y0;
+  const max = Math.max(...top.map(x => x.costo)), paso = (x1 - x0) / top.length, ancho = Math.max(paso * 0.64, 3);
+  const nombres = paso >= 34, n = v => v.toFixed(1);
+  let g = '';
+  // Rejilla y ejes: S/ a la izquierda (0, mitad, máximo) y % a la derecha (0, 50, 100)
+  for (const f of [0, 0.5, 1]) { const y = y1 - f * alto;
+    g += `<line class="rej" x1="${x0}" y1="${n(y)}" x2="${x1}" y2="${n(y)}"/><text class="eje" x="${x0 - 6}" y="${n(y + 3.5)}" text-anchor="end">${abreviarPareto(max * f)}</text>`; }
+  for (const pc of [0, 50, 100]) g += `<text class="eje" x="${x1 + 6}" y="${n(y1 - pc / 100 * alto + 3.5)}">${pc} %</text>`;
+  // Barras (con su zona de clic, que es toda la columna)
+  top.forEach((x, i) => {
+    const hb = Math.max(x.costo / max * alto, 0.5), bx = x0 + i * paso + (paso - ancho) / 2;
+    g += `<rect class="b-${x.abc}" x="${n(bx)}" y="${n(y1 - hb)}" width="${n(ancho)}" height="${n(hb)}" rx="2"/>`;
+    if (i === paretoSel) g += `<rect class="sel" x="${n(bx - 2)}" y="${n(y1 - hb - 2)}" width="${n(ancho + 4)}" height="${n(hb + 4)}" rx="3"/>`;
+    const etq = nombres ? cortoPareto(x.descripcion) : String(i + 1);
+    g += `<text class="${nombres ? 'nom' : 'eje'}" x="${n(x0 + i * paso + paso / 2)}" y="${n(y1 + 13 + (nombres ? (i % 2) * 11 : 0))}" text-anchor="middle">${esc(etq)}</text>`;
+  });
+  // Acumulado (sobre el costo de todos) y raya del 80 %
+  const y80 = y1 - 0.8 * alto;
+  g += `<line class="p80" x1="${x0}" y1="${n(y80)}" x2="${x1}" y2="${n(y80)}"/><text class="t80" x="${x1 + 6}" y="${n(y80 + 3.5)}">80 %</text>`;
+  let acum = 0; const ptos = top.map((x, i) => { acum += x.costo; return [x0 + i * paso + paso / 2, y1 - Math.min(acum / total, 1) * alto]; });
+  g += `<polyline class="acum" points="${ptos.map(([a, b]) => n(a) + ',' + n(b)).join(' ')}"/>` + ptos.map(([a, b]) => `<circle class="pto" cx="${n(a)}" cy="${n(b)}" r="2.6"/>`).join('');
+  // Arriba: cuántos hacen el 80 % y cuánto suman los 15; a la derecha, el dato de la barra elegida (en el celular, en su lugar)
+  const nA = d.lista.filter(x => x.abc === 'A').length, suma = top.reduce((s, x) => s + x.costo, 0), angosto = w < 560;
+  const elegida = paretoSel >= 0 && paretoSel < top.length ? top[paretoSel] : null;
+  const dato = x => { const nom = angosto && x.descripcion.length > 24 ? x.descripcion.slice(0, 23) + '…' : x.descripcion;
+    return `${paretoSel + 1}. ${esc(nom)} · S/ ${f2(x.costo)} · ${(x.costo / total * 100).toFixed(1)} %`; };
+  if (!(angosto && elegida))
+    g += `<text class="ley2" x="${angosto ? 0 : x0 + 4}" y="13">` + (angosto ? `A · ${nA} = 80 % · los ${top.length} mayores: ${(suma / total * 100).toFixed(1)} %`
+      : `A · ${nA} insumo${nA === 1 ? '' : 's'} = 80 %   ·   los ${top.length} mayores: ${(suma / total * 100).toFixed(1)} % del costo`) + `</text>`;
+  if (elegida) g += angosto ? `<text class="dato" x="0" y="13">${dato(elegida)}</text>` : `<text class="dato" x="${x1}" y="13" text-anchor="end">${dato(elegida)}</text>`;
+  top.forEach((x, i) => { g += `<rect class="hit" data-i="${i}" x="${n(x0 + i * paso)}" y="${y0}" width="${n(paso)}" height="${n(alto + abajo)}"/>`; });
+  cont.innerHTML = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Curva ABC: los ${top.length} insumos de mayor costo y su acumulado">${g}</svg><div class="globo" hidden></div>`;
+  const globo = cont.querySelector('.globo');
+  cont.querySelectorAll('.hit').forEach(r => {
+    r.addEventListener('mousemove', e => {
+      const i = +r.dataset.i, x = top[i], caja = cont.getBoundingClientRect();
+      globo.innerHTML = `${i + 1}. ${esc(x.descripcion)}<br><b>S/ ${f2(x.costo)}</b> · ${(x.costo / total * 100).toFixed(1)} % · clase ${x.abc}<br><span style="opacity:.75">Clic: el insumo en la tabla</span>`;
+      globo.hidden = false;
+      const gx = Math.min(Math.max(e.clientX - caja.left, 120), caja.width - 120);
+      globo.style.left = gx + 'px'; globo.style.top = (e.clientY - caja.top - 10) + 'px';
+    });
+    r.addEventListener('mouseleave', () => { globo.hidden = true; });
+    r.addEventListener('click', () => {
+      const i = +r.dataset.i;
+      paretoSel = i === paretoSel ? -1 : i;   // otro clic en la misma la suelta
+      pintarPareto();
+      if (paretoSel >= 0) irAInsumoBalance(top[i]);
+    });
+  });
+}
+// Lleva la tabla al insumo: si está entre los que no se muestran (más de 50 de su categoría), abre la categoría
+function irAInsumoBalance(x) {
+  const fila = () => [...document.querySelectorAll('#balRes td.ins button')].find(b => b.dataset.ins === x.k)?.closest('tr');
+  let tr = fila();
+  if (!tr && filtradosBalance().includes(x)) { balEstado.abiertos.add(x.categoria); pintarBalanceRes(); tr = fila(); }
+  if (!tr) { const c = $('#balCurva'); c && c.insertAdjacentHTML('beforeend', `<p class="aviso-f" style="color:var(--ambar);margin:4px 0 0;font-size:var(--t-aux)">«${esc(x.descripcion)}» no está en la tabla por los filtros: «Limpiar filtros» lo muestra.</p>`); return; }
+  tr.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  tr.classList.add('resaltada'); setTimeout(() => tr.classList.remove('resaltada'), 2200);
+}
+let paretoTam = 0;
+window.addEventListener('resize', () => { clearTimeout(paretoTam); paretoTam = setTimeout(() => { if (!$('#balance')?.hidden) pintarPareto(); }, 150); });
 
 function exportarBalance() {
   const d = datosBalance(), fs = ordenarBalance(filtradosBalance());
