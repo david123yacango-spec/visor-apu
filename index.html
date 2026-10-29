@@ -1412,32 +1412,68 @@ document.querySelectorAll('#vistas a').forEach(a => a.addEventListener('click', 
   if (a.dataset.vista === 'balance') irBalance(''); else irPresupuesto();
 }));
 
-// Insumos de un conjunto de partidas: Σ metrado × cantidad y Σ metrado × parcial; las subpartidas se abren en sus insumos.
+// Insumos de un conjunto de partidas como la lista de insumos de Power Cost y de vidBIM Costos (29/10/2026): en cada partida,
+// el monto de cada línea es metrado × cantidad × precio (en los %MO, metrado × parcial) y el redondeo del parcial de la partida
+// se reparte en partes iguales entre sus líneas con parcial ≠ 0; las subpartidas se abren igual. Por insumo, el monto a
+// céntimos ÷ precio da la cantidad a 2 decimales (más si da 0.00) y costo = cantidad × precio; los %MO, el monto a céntimos.
+// Lo que falta para el costo directo del alcance se cierra en HERRAMIENTAS MANUALES (24.19 en Lomas de Ilo MOD 06, como Costos).
 function insumosDe(partidas) {
-  const ins = new Map();
-  const sumar = (l, m, via) => {
+  const ins = new Map(), r2 = Lector.r2;
+  const esPct = l => l.tipo === 'pmo' || l.tipo === 'pmt';
+  const sumar = (l, factor, monto, via) => {
     const k = l.codigo + '|' + l.descripcion;
     let x = ins.get(k);
-    if (!x) ins.set(k, x = { k, codigo: l.codigo, descripcion: l.descripcion, unidad: l.unidad, categoria: l.categoria, cantidad: 0, costo: 0, precios: new Set(), porcentaje: false, partidas: new Set() });
-    if (l.tipo === 'pmo' || l.tipo === 'pmt') x.porcentaje = true; else { x.cantidad += m * (l.cantidad || 0); if (l.precio != null) x.precios.add(l.precio); }
-    x.costo += m * (l.parcial || 0);
+    if (!x) ins.set(k, x = { k, codigo: l.codigo, descripcion: l.descripcion, unidad: l.unidad, categoria: l.categoria, monto: 0, peso: 0, real: 0, precios: new Set(), porcentaje: false, partidas: new Set() });
+    if (esPct(l)) x.porcentaje = true; else { x.real += factor * (l.cantidad || 0); if (l.precio != null) x.precios.add(l.precio); }
+    x.monto += monto; x.peso += factor * (l.parcial || 0);
     x.partidas.add(via);
   };
+  const repartir = (lineas, factor, objetivo, via, prof) => {
+    const exacto = l => esPct(l) ? factor * (l.parcial || 0) : factor * (l.cantidad || 0) * (l.precio || 0);
+    const reparten = lineas.filter(l => (l.parcial || 0) !== 0);
+    const cuota = reparten.length ? (reparten.reduce((s, l) => s + exacto(l), 0) - objetivo) / reparten.length : 0;
+    for (const l of lineas) {
+      const monto = (l.parcial || 0) === 0 ? 0 : exacto(l) - cuota;
+      if (l.categoria === 'sp' && l.subpartida && prof < 30) repartir(l.subpartida.lineas, factor * (l.cantidad || 0), monto, via, prof + 1);
+      else sumar(l, factor, monto, via);
+    }
+  };
+  let objetivo = 0;
   for (const f of partidas) {
     const a = f.apu, m = f.metrado || 0;
     if (!a || !m) continue;
-    for (const l of a.lineas) {
-      if (l.categoria === 'sp' && l.subpartida) { for (const s of l.subpartida.lineas) sumar(s, m * (l.cantidad || 0), f.item); }
-      else sumar(l, m, f.item);
-    }
+    const parcial = r2(m * (a.cu ?? 0));
+    objetivo += parcial;
+    repartir(a.lineas, m, parcial, f.item, 0);
   }
-  const lista = [...ins.values()].map(x => ({ ...x, costo: Lector.r2(x.costo), cantidad: x.cantidad, precio: x.precios.size === 1 ? [...x.precios][0] : x.precios.size ? Math.max(...x.precios) : null, nPartidas: x.partidas.size }))
-    .sort((a, b) => b.costo - a.costo);
+  const lista = [];
+  for (const x of ins.values()) {
+    if (x.peso === 0) continue;   // no pesa en el costo (agua 0.004 por unidad: 0.00 en el APU), como en Costos
+    const precio = x.precios.size === 1 ? [...x.precios][0] : x.precios.size ? Math.max(...x.precios) : null;
+    let cantidad = 0, costo = r2(x.monto);
+    if (!x.porcentaje && precio && x.precios.size === 1) {
+      const exacta = costo / precio;
+      let dec = 2; cantidad = r2(exacta);
+      while (cantidad === 0 && exacta !== 0 && dec < 6) { dec++; cantidad = Math.round(exacta * 10 ** dec) / 10 ** dec; }
+      costo = r2(cantidad * precio);
+    } else if (!x.porcentaje) cantidad = x.real;   // con dos precios no hay una sola cuenta: la cantidad real del APU
+    lista.push({ ...x, cantidad, precio, costo, nPartidas: x.partidas.size });
+  }
+  // Cierre en herramientas: la diferencia con el costo directo del alcance (Σ parciales de sus partidas)
+  const dif = r2(r2(objetivo) - lista.reduce((s, x) => s + x.costo, 0));
+  let cierre = null;
+  if (dif !== 0 && lista.length) {
+    const mayor = xs => xs.sort((a, b) => b.costo - a.costo)[0];
+    const dest = mayor(lista.filter(x => x.porcentaje && /^\s*HERRAMIENTAS/i.test(x.descripcion))) || mayor(lista.filter(x => x.porcentaje)) || mayor(lista.slice());
+    dest.costo = r2(dest.costo + dif); dest.ajuste = dif;
+    cierre = { descripcion: dest.descripcion, monto: dif };
+  }
+  lista.sort((a, b) => b.costo - a.costo);
   // Curva ABC sobre todo el alcance: A hasta el 80 % del costo, B hasta el 95 %, C el resto.
   const total = lista.reduce((s, x) => s + x.costo, 0);
   let acum = 0;
   for (const x of lista) { x.abc = acum < 0.8 * total ? 'A' : acum < 0.95 * total ? 'B' : 'C'; acum += x.costo; }
-  return { lista, total: Lector.r2(total) };
+  return { lista, total: Lector.r2(total), cierre };
 }
 
 function datosBalance() {
@@ -1463,7 +1499,8 @@ function pintarBalance() {
     `<span>·</span><span><b class="datos" style="color:var(--tinta)">${d.lista.length.toLocaleString('es-PE')}</b> insumos en <b class="datos" style="color:var(--tinta)">${d.partidas.length.toLocaleString('es-PE')}</b> partidas</span>` +
     `<button class="op" id="balVolver" title="Volver al presupuesto">← Presupuesto</button></div></div>` +
     `<div class="tot"><div class="lbl">Costo directo del alcance</div><div class="val"><small>S/</small>${f2(d.total)}</div>` +
-    `<div class="por">Σ metrado × cantidad × precio, insumo por insumo` + (Math.abs(dif) >= 0.005 ? ` · difiere S/ ${f2(dif)} del ${t ? 'total del título' : 'costo directo'} por redondeos` : '') + `</div>` +
+    `<div class="por">Como Power Cost: cantidad a 2 decimales y costo = cantidad × precio` +
+    (d.cierre ? ` · S/ ${f2(d.cierre.monto)} de redondeo cerrado en ${esc(titleCase(d.cierre.descripcion))}` : '') + (Math.abs(dif) >= 0.005 ? ` · difiere S/ ${f2(dif)} del ${t ? 'total del título' : 'costo directo'} por redondeos` : '') + `</div>` +
     `<div class="btns"><button class="btn" id="balExportar">Exportar a Excel</button></div></div></div>` +
     `<div class="filtros"><input type="search" id="balQ" placeholder="Buscar insumo por nombre o código…" value="${esc(b.q)}">` +
     `<div class="grupo"><span>Categoría</span>` + nCats.map(([c, n]) => `<button class="chipc ${c}${b.cats.has(c) ? ' on' : ''}" data-cat="${c}">${n}</button>`).join('') + `</div>` +
@@ -1550,7 +1587,7 @@ function pintarBalanceRes() {
     h += `</tbody>`;
   }
   h += `<tfoot><tr><td colspan="5">${hayFiltro ? 'Total de lo filtrado' : 'Total del alcance'} · ${fs.length.toLocaleString('es-PE')} insumos</td><td class="num">S/ ${f2(totalF)}</td><td colspan="3"></td></tr></tfoot></table>` +
-    `<div class="pie2"><span>Cantidad y costo = Σ metrado × cantidad del APU (× precio). Las subpartidas se cuentan en sus insumos.</span><span>Clic en un encabezado para ordenar · clic en un insumo: dónde se usa.</span></div></section>`;
+    `<div class="pie2"><span>Como la lista de insumos de Power Cost: el redondeo de cada partida se reparte en partes iguales entre sus insumos; cantidad = costo a céntimos ÷ precio, a 2 decimales, y costo = cantidad × precio. Las subpartidas se cuentan en sus insumos.</span><span>Clic en un encabezado para ordenar · clic en un insumo: dónde se usa.</span></div></section>`;
   $('#balRes').innerHTML = h;
   const r = $('#balRes');
   $('#balSoloA').addEventListener('change', e => { b.soloA = e.target.checked; pintarBalanceRes(); });
@@ -1675,35 +1712,20 @@ function exportarBalance() {
 
 // ─────────── Resumen de un título ───────────
 // Gasto por categoría = Σ metrado × subtotal de la categoría en el APU de cada partida.
-// Insumos = Σ metrado × cantidad (y × parcial de la línea); las subpartidas se abren en sus insumos.
+// Insumos: los del balance del título (insumosDe, como la lista de Power Cost); las subpartidas se abren en sus insumos.
 function resumenDe(t) {
   const pre = t.item + '.';
   const partidas = D.filas.filter(g => g.esPartida && g.item.startsWith(pre));
   const subtitulos = D.filas.filter(g => !g.esPartida && g.item.startsWith(pre)).length;
   const cat = { mo: 0, mat: 0, eq: 0, sc: 0, sp: 0 };
-  const ins = new Map();
-  const sumar = (l, m, via) => {
-    const k = l.codigo + '|' + l.descripcion;
-    let x = ins.get(k);
-    if (!x) ins.set(k, x = { k, codigo: l.codigo, descripcion: l.descripcion, unidad: l.unidad, categoria: l.categoria, cantidad: 0, costo: 0, precios: new Set(), porcentaje: false, partidas: new Set() });
-    const pct = l.tipo === 'pmo' || l.tipo === 'pmt';
-    if (pct) x.porcentaje = true; else { x.cantidad += m * (l.cantidad || 0); if (l.precio != null) x.precios.add(l.precio); }
-    x.costo += m * (l.parcial || 0);
-    x.partidas.add(via);
-  };
   for (const f of partidas) {
     const a = f.apu, m = f.metrado || 0;
     if (!a || !m) continue;
     for (const c of Object.keys(cat)) cat[c] += m * (a.subtotales[c] ?? a.calcSubtotales[c] ?? 0);
-    for (const l of a.lineas) {
-      if (l.categoria === 'sp' && l.subpartida) { for (const s of l.subpartida.lineas) sumar(s, m * (l.cantidad || 0), f.item); }
-      else sumar(l, m, f.item);
-    }
   }
   for (const c of Object.keys(cat)) cat[c] = Lector.r2(cat[c]);
   const suma = Lector.r2(Object.values(cat).reduce((s, v) => s + v, 0));
-  const lista = [...ins.values()].map(x => ({ ...x, costo: Lector.r2(x.costo), precio: x.precios.size === 1 ? [...x.precios][0] : null }))
-    .sort((a, b) => b.costo - a.costo);
+  const lista = insumosDe(partidas).lista;
   return { partidas, subtitulos, cat, suma, lista, total: t.total ?? suma };
 }
 
