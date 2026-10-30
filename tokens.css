@@ -89,7 +89,8 @@
 }
 
 /* La cabecera es siempre de tinta, en los dos temas (como la app de escritorio). */
-:root{ --cabecera-fondo:#111519; --cabecera-texto:#EDEFF2; --cabecera-azul:#6285FF; --cabecera-linea:#3A4048; --cabecera-hover:#1B232C; }
+:root{ --cabecera-fondo:#111519; --cabecera-texto:#EDEFF2; --cabecera-azul:#6285FF; --cabecera-linea:#3A4048; --cabecera-hover:#1B232C;
+  --cabecera-borde:#5A636D; --cabecera-borde-hover:#6C7681; --cabecera-sel:#212B47; }
 
 /* Base mínima */
 html{ background:var(--papel); color:var(--tinta); font-family:var(--f-texto); font-size:var(--t-cuerpo); line-height:1.5; -webkit-font-smoothing:antialiased; }

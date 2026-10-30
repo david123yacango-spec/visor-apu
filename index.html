@@ -403,12 +403,23 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
 #balance button.op{font:inherit;font-size:var(--t-aux)}
 #balance .limpiar{cursor:pointer}
 #balance .masf{display:none}
-.cab .vistas{display:flex;gap:4px;margin-left:8px}
-.cab .vistas a{color:var(--cabecera-texto);text-decoration:none;font-size:var(--t-tabla);padding:6px 10px;border-radius:var(--radio);opacity:.85;white-space:nowrap}
-.cab .vistas a:hover{background:var(--cabecera-hover);opacity:1}
-.cab .vistas a.activo{background:var(--cabecera-hover);opacity:1}
+/* Pestañas como botones (30-10-2026, VA1): la elegida, teñida de azul con raya de 3 px; cada una con un ícono de color de lo que muestra */
+.cab .vistas{display:flex;gap:6px;margin-left:12px}
+.cab .vistas a{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--cabecera-borde,#5A636D);border-radius:var(--radio);color:var(--cabecera-texto);text-decoration:none;font-size:var(--t-tabla);font-weight:500;white-space:nowrap}
+.cab .vistas a:hover{background:var(--cabecera-hover);border-color:var(--cabecera-borde-hover,#6C7681)}
+.cab .vistas a:focus-visible{outline:2px solid var(--cabecera-azul);outline-offset:2px}
+.cab .vistas a.activo{background:var(--cabecera-sel,#212B47);border-color:var(--cabecera-azul);color:#fff;font-weight:600;box-shadow:inset 0 -3px 0 var(--cabecera-azul)}
+.cab .vistas a.activo:hover{background:var(--cabecera-sel,#212B47)}
+.cab .vistas .ico{display:block;width:14px;height:14px;flex:none}
 @media (max-width:1250px){ .cab .archivos{display:none} }
-@media (max-width:700px){ .cab .vistas{display:none} #balance{padding:12px;gap:10px} #balance .filtros input[type=search]{min-width:0;flex:1 1 100%} }
+/* Hasta 900 px, las pestañas en una segunda fila de la cabecera, mitad y mitad (VA2): sin desborde y también en el celular */
+@media (max-width:900px){
+  .cab{flex-wrap:wrap;height:auto;row-gap:0}
+  .cab > .marca,.cab > .der{height:var(--cabecera-alto)}
+  .cab .vistas{order:9;flex:1 0 100%;margin:0;padding:0 0 8px;gap:6px}
+  .cab .vistas a{flex:1 1 0;justify-content:center;height:36px;padding:0 8px}
+}
+@media (max-width:700px){ #balance{padding:12px;gap:10px} #balance .filtros input[type=search]{min-width:0;flex:1 1 100%} }
 .pres .pie a{color:var(--azul);text-decoration:none}
 #balance .cabbal{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;padding:14px 16px 16px}
 #balance .cabbal h1{font-family:var(--f-marca);font-weight:600;font-size:20px;letter-spacing:-.02em;margin:0 0 8px}
@@ -575,7 +586,10 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
     <svg><use href="#vidbim-s"/></svg>
     <span class="wm"><span class="a">Vid</span><span class="b">BIM</span><span class="c">Visor de APU</span></span>
   </a>
-  <nav class="vistas" id="vistas" hidden aria-label="Vistas"><a href="#" data-vista="presupuesto" class="activo">Presupuesto</a><a href="#balance" data-vista="balance">Balance de insumos</a></nav>
+  <nav class="vistas" id="vistas" hidden aria-label="Vistas">
+    <a href="#" data-vista="presupuesto" class="activo"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><rect x="0" y="1" width="14" height="3" rx="1" fill="#F0895A"/><rect x="3" y="5.5" width="11" height="3" rx="1" fill="#8C93FF"/><rect x="6" y="10" width="8" height="3" rx="1" fill="#4AD66D"/></svg>Presupuesto</a>
+    <a href="#balance" data-vista="balance"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><rect x="0" y="0" width="3" height="14" rx="1" fill="#6285FF"/><rect x="3.67" y="4" width="3" height="10" rx="1" fill="#4FB791"/><rect x="7.33" y="7" width="3" height="7" rx="1" fill="#E39A55"/><rect x="11" y="10" width="3" height="4" rx="1" fill="#B08CE8"/></svg>Balance de insumos</a>
+  </nav>
   <div class="archivos" id="chipsArchivos"></div>
   <div class="der">
     <button class="btn" id="btnCambiar" hidden title="Agregar otro proyecto (sus dos Excel)"><span class="largo">Agregar proyecto</span><span class="corto" aria-hidden="true">＋</span></button>
@@ -1692,7 +1706,274 @@ function irAInsumoBalance(x) {
 let paretoTam = 0;
 window.addEventListener('resize', () => { clearTimeout(paretoTam); paretoTam = setTimeout(() => { if (!$('#balance')?.hidden) pintarPareto(); }, 150); });
 
-function exportarBalance() {
+// ─ Exportar el Balance (30-10-2026): hoja 1 «Lista de insumos» como la de vidBIM Costos (ExportarLista: siempre todo el
+// alcance, sin filtros, para que su total sea el costo directo) y hoja 2 «Análisis ABC» (lo filtrado, con el filtro de Excel).
+// El formato lo escribe ExcelJS, que se carga solo al exportar; si no carga, sale el Excel sin formato de antes y un aviso.
+const EXCELJS = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+let cargaExcelJS = null;
+function cargarExcelJS() {
+  if (window.ExcelJS) return Promise.resolve();
+  return cargaExcelJS ??= new Promise((ok, mal) => {
+    const s = document.createElement('script');
+    s.src = EXCELJS; s.onload = () => ok();
+    s.onerror = () => { cargaExcelJS = null; s.remove(); mal(new Error('sin conexión')); };
+    document.head.append(s);
+  });
+}
+async function exportarBalance() {
+  const btn = $('#balExportar'), texto = btn.textContent;
+  $('#balAvisoExcel')?.remove();
+  btn.disabled = true; btn.textContent = 'Preparando…';
+  try {
+    await cargarExcelJS();
+    const { datos, nombre } = await libroBalance();
+    descargar(datos, nombre);
+  } catch (e) {
+    console.error(e);
+    exportarBalanceSinFormato();
+    btn.closest('.btns').insertAdjacentHTML('afterend', `<div id="balAvisoExcel" style="color:var(--ambar);font-size:var(--t-aux);margin-top:6px">No se pudo cargar el formato; se exportó sin formato.</div>`);
+  } finally { btn.disabled = false; btn.textContent = texto; }
+}
+function descargar(datos, nombre) {
+  const url = URL.createObjectURL(new Blob([datos], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// Formatos y anchos de Power Cost, como en Costos (Nucleo\PowerCost\ExportadorPowerCost.cs). ExcelJS escribe el ancho tal cual
+// (ClosedXML le suma 0.71 y Costos lo resta), así que van los de Power Cost.
+const FMT_MONTO = '_ * #,##0.00_ ;_ * \\-#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+const FMT_PRECIO = '_ * #,##0.00_ ;_ * \\-#,##0.00_ ;_ * " "??_ ;_ @_ ';
+const FMT_CANT3 = '_ * #,##0.000_ ;_ * \\-#,##0.000_ ;_ * "-"???_ ;_ @_ ';
+const ANCHOS_LISTA = [10.0, 2.78, 28.66, 12.22, 6.55, 11.44, 11.44, 13.11, 11.55];
+// Los grupos de la lista de Costos (Power Cost tiene tres; Costos agrega SERVICIOS). Lo que no es MO, EQ ni SC va en MATERIALES.
+const GRUPOS_LISTA = [['mo', 'MANO DE OBRA'], ['mat', 'MATERIALES'], ['eq', 'EQUIPO'], ['sc', 'SERVICIOS']];
+const grupoLista = c => c === 'mo' || c === 'eq' || c === 'sc' ? c : 'mat';
+// Orden de Costos: en mano de obra primero capataz, topógrafo, operario, oficial y peón; luego por nombre (ordinal).
+const CATEGORIAS_OBRA = ['CAPATAZ', 'TOPOGRAFO', 'OPERARIO', 'OFICIAL', 'PEON'];
+const rangoObra = x => { if (grupoLista(x.categoria) !== 'mo') return 0; const i = CATEGORIAS_OBRA.indexOf(sinTilde(x.descripcion.trim())); return i < 0 ? CATEGORIAS_OBRA.length : i; };
+const ordenLista = (a, b) => rangoObra(a) - rangoObra(b) || (a.descripcion < b.descripcion ? -1 : a.descripcion > b.descripcion ? 1 : 0);
+
+// Ancho de una columna en px a 96 ppp (dígito de 7 px) y del texto en Arial (anchos de Helvetica por cada 1000 del cuerpo, de « » a «~»;
+// las tildes no cambian el ancho): las mismas cuentas que Etiqueta() de Costos para partir el nombre largo del proyecto.
+const pxColumna = w => Math.trunc((256 * w + 18) / 256 * 7);
+const ANCHOS_ARIAL = [278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556,
+  278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667,
+  611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833,
+  556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584];
+const ANCHOS_ARIAL_NEGRITA = [278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556,
+  333, 333, 584, 584, 584, 611, 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667, 778, 722, 667,
+  611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556, 333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889,
+  611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584];
+function anchoArial(texto, tam, negrita) {
+  const t = negrita ? ANCHOS_ARIAL_NEGRITA : ANCHOS_ARIAL;
+  let s = 0;
+  for (const ch of texto.normalize('NFD').replace(/[̀-ͯ]/g, '')) { const c = ch.codePointAt(0); s += c >= 32 && c <= 126 ? t[c - 32] : 556; }
+  return s * tam / 1000;
+}
+// Líneas del texto cortado por palabras, como «Ajustar texto» de Excel (una palabra más larga que la línea se parte).
+function lineasArial(texto, tam, negrita, cabe) {
+  const espacio = anchoArial(' ', tam, negrita);
+  let x = 0, n = 1;
+  for (const p of texto.split(' ').filter(Boolean)) {
+    const w = anchoArial(p, tam, negrita);
+    if (x > 0 && x + espacio + w > cabe) { n++; x = w; } else x += (x > 0 ? espacio : 0) + w;
+    while (x > cabe) { n++; x -= cabe; }
+  }
+  return n;
+}
+
+// «Son :» del pie: NumeroEnLetras.Soles de Costos.
+const LETRAS_U = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE', 'DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE',
+  'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE', 'VEINTIUNO', 'VEINTIDOS', 'VEINTITRES', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISEIS',
+  'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+const LETRAS_D = ['', '', '', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+const LETRAS_C = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+const sinUnoFinal = s => s.endsWith('UNO') ? s.slice(0, -1) : s;   // «VEINTIUNO MIL» → «VEINTIUN MIL»
+function menor1000(n) {
+  if (n === 100) return 'CIEN';
+  const s = LETRAS_C[Math.floor(n / 100)], r = n % 100;
+  if (!r) return s;
+  const t = r < 30 ? LETRAS_U[r] : LETRAS_D[Math.floor(r / 10)] + (r % 10 ? ' Y ' + LETRAS_U[r % 10] : '');
+  return s ? s + ' ' + t : t;
+}
+function enteroEnLetras(n) {
+  if (n >= 1e6) { const m = Math.floor(n / 1e6), r = n % 1e6, s = m === 1 ? 'UN MILLON' : sinUnoFinal(enteroEnLetras(m).replace('VEINTIUNO', 'VEINTIUN')) + ' MILLONES'; return r ? s + ' ' + enteroEnLetras(r) : s; }
+  if (n >= 1000) { const m = Math.floor(n / 1000), r = n % 1000, s = m === 1 ? 'MIL' : sinUnoFinal(menor1000(m)) + ' MIL'; return r ? s + ' ' + menor1000(r) : s; }
+  return menor1000(n);
+}
+function solesEnLetras(x, moneda) {
+  x = Lector.r2(Math.abs(x));
+  const e = Math.floor(x), c = Math.round((x - e) * 100);
+  return `${e ? enteroEnLetras(e) : 'CERO'} CON ${String(c).padStart(2, '0')}/100 ${moneda}`;
+}
+
+// Letras y rayas de la lista de Power Cost: rótulos en Times New Roman negrita cursiva, datos en Arial Narrow 8.
+const letraTNR = tam => ({ name: 'Times New Roman', size: tam, bold: true, italic: true });
+const letraAN = (tam = 8, bold = false) => ({ name: 'Arial Narrow', size: tam, bold });
+const letraArial = (tam = 8, bold = false) => ({ name: 'Arial', size: tam, bold });
+function xlCelda(ws, r, c, valor, letra = letraAN(), horizontal, fmt) {
+  const x = ws.getCell(r, c);
+  if (valor != null) x.value = valor;
+  const vertical = x.alignment?.vertical || 'middle';   // la fila de un nombre largo ya va arriba
+  x.font = letra; x.alignment = horizontal ? { vertical, horizontal } : { vertical };
+  if (fmt) x.numFmt = fmt;
+  return x;
+}
+function xlRaya(ws, r, nCol, lado, estilo) {
+  for (let c = 1; c <= nCol; c++) { const x = ws.getCell(r, c); x.border = { ...(x.border || {}), [lado]: { style: estilo } }; }
+}
+const xlAlto = (ws, r, h) => { ws.getRow(r).height = h; };
+function hoyDdMmAaaa() { const h = new Date(); return `${String(h.getDate()).padStart(2, '0')}/${String(h.getMonth() + 1).padStart(2, '0')}/${h.getFullYear()}`; }
+function xlPagina(ws, filasFijas, vertical) {
+  Object.assign(ws.pageSetup, { paperSize: 9, orientation: vertical ? 'portrait' : 'landscape', printTitlesRow: `1:${filasFijas}`,
+    margins: { left: 0.3937007874, right: vertical ? 0 : 0.3937007874, top: 0.5511811024, bottom: 0.7086614173, header: 0, footer: 0.4330708661 } });
+  if (vertical) Object.assign(ws.pageSetup, { scale: 95, fitToPage: false }); else Object.assign(ws.pageSetup, { fitToPage: true, fitToWidth: 1, fitToHeight: 0 });
+  ws.headerFooter.oddFooter = `&L&"Arial,Cursiva"&6P.&P/&N&R&"Arial,Cursiva"&6Exportado el ${hoyDdMmAaaa()}`;
+  ws.views = [{ state: 'frozen', ySplit: filasFijas, showGridLines: false }];
+}
+// Una fila de la cabecera, como Etiqueta() de Costos: el rótulo en A y el valor en C. Si no entra en una línea hasta la columna
+// «hasta», se juntan esas celdas con «Ajustar texto» y la fila crece, sin pasar del borde de la hoja.
+function xlEtiqueta(ws, r, rotulo, valor, tam, negrita, alto, hasta, nCol) {
+  valor = String(valor || '');
+  xlCelda(ws, r, 1, rotulo, letraTNR(8));
+  xlCelda(ws, r, 3, valor, letraArial(tam, negrita));
+  xlAlto(ws, r, alto);
+  let px = 0; for (let c = 3; c <= hasta; c++) px += pxColumna(ANCHOS_LISTA[c - 1]);
+  const lineas = lineasArial(valor, tam, negrita, (px - 4) * 0.75);
+  if (lineas > 1) {
+    for (let c = 1; c <= nCol; c++) { const x = ws.getCell(r, c); x.alignment = { ...(x.alignment || {}), vertical: 'top' }; }
+    ws.mergeCells(r, 3, r, hasta);
+    ws.getCell(r, 3).alignment = { vertical: 'top', wrapText: true };
+    xlAlto(ws, r, Math.max(alto, Math.round(lineas * (tam >= 10 ? 13.2 : 10.8) * 100) / 100));
+  }
+}
+
+async function libroBalance() {
+  const d = datosBalance(), t = balAlc ? D.filas[porItemFila[balAlc]] : null;
+  const wb = new ExcelJS.Workbook();
+  hojaLista(wb.addWorksheet('Lista de insumos'), d, t);
+  hojaAbc(wb.addWorksheet('Análisis ABC'), t);
+  return { datos: conLetraNormal(await wb.xlsx.writeBuffer()), nombre: `Lista de insumos - ${t ? t.item : 'proyecto'}.xlsx` };
+}
+// ExcelJS deja Calibri en el estilo Normal; Power Cost y Costos usan Aptos Narrow 11. Excel imprime en la medida de esa letra:
+// con ella las páginas se cortan en las mismas filas que la lista de Costos (medido: 13 páginas y 59 filas en la primera, no 12 y 63).
+// Se cambia en xl/styles.xml con el CFB de SheetJS; si algo falla, sale igual, con Calibri.
+function conLetraNormal(datos) {
+  try {
+    const CFB = XLSX.CFB, zip = CFB.read(new Uint8Array(datos), { type: 'array' }), e = CFB.find(zip, '/xl/styles.xml');
+    const s = new TextDecoder().decode(e.content).replace(/(<fonts[^>]*>\s*<font>)(.*?)(<\/font>)/s,
+      (_, a, f, b) => a + f.replace('<name val="Calibri"/>', '<name val="Aptos Narrow"/>').replace('<scheme val="minor"/>', '') + b);
+    e.content = new TextEncoder().encode(s); e.size = e.content.length;
+    return new Uint8Array(CFB.write(zip, { fileType: 'zip', type: 'array', compression: true }));
+  } catch (x) { console.error(x); return datos; }
+}
+
+// Hoja 1: la «Lista de insumos» de Costos con todo el alcance. Con un título como alcance se titula «Listado de Insumos» y lleva la
+// fila «Título», como «Sub Presupuesto» en el APU de Power Cost.
+function hojaLista(ws, d, t) {
+  const e = D.encabezado, nCol = 8, fijas = t ? 10 : 9;
+  ws.columns = ANCHOS_LISTA.map(width => ({ width }));
+  ws.properties.defaultRowHeight = 10.2;
+  xlPagina(ws, fijas, true);
+  xlRaya(ws, 1, nCol, 'bottom', 'hair'); xlAlto(ws, 1, 10.8);
+  xlCelda(ws, 2, 1, t ? 'Listado de Insumos' : 'Listado Total de Insumos', letraTNR(18), 'centerContinuous');
+  for (let c = 2; c <= nCol; c++) xlCelda(ws, 2, c, null, letraTNR(18), 'centerContinuous');
+  xlAlto(ws, 2, 31.95);
+  let r = 3;
+  xlEtiqueta(ws, r++, 'Proyecto', e.Proyecto, 8, false, 10.8, nCol, nCol);
+  if (t) xlEtiqueta(ws, r++, 'Título', `${t.item} ${t.descripcion}`, 10, true, 13.2, nCol, nCol);
+  xlEtiqueta(ws, r++, 'Cliente', e.Cliente, 8, false, 10.8, nCol, nCol);
+  xlEtiqueta(ws, r, 'Ubicación', e['Ubicación'], 8, false, 13.2, 5, nCol);   // hasta antes de «Costo a :»
+  xlCelda(ws, r, 6, 'Costo a :', letraTNR(8), 'right');
+  xlCelda(ws, r++, 8, e['Costo a'] || '', letraArial(10, true), 'right');
+  xlRaya(ws, r, nCol, 'bottom', 'medium'); xlAlto(ws, r++, 5.25);
+  xlRaya(ws, r, nCol, 'top', 'medium'); xlRaya(ws, r, nCol, 'bottom', 'thin'); xlAlto(ws, r++, 3);
+  xlRaya(ws, r, nCol, 'top', 'thin'); xlRaya(ws, r, nCol, 'bottom', 'medium'); xlAlto(ws, r, 16.5);
+  [[1, 'IU  Código'], [3, 'Descripción'], [5, 'Unidad', 'center'], [6, 'Cantidad', 'right'], [7, 'Precio', 'right'], [8, 'Parcial', 'right']]
+    .forEach(([c, v, h]) => xlCelda(ws, r, c, v, letraTNR(9), h));
+  xlAlto(ws, ++r, 5.25);
+  for (const [g, nombre] of GRUPOS_LISTA) {
+    const xs = d.lista.filter(x => grupoLista(x.categoria) === g).sort(ordenLista);
+    if (!xs.length) continue;
+    xlCelda(ws, ++r, 2, nombre, { ...letraAN(8, true), underline: true }); xlAlto(ws, r, 10.2);
+    for (const x of xs) {
+      xlAlto(ws, ++r, 10.2);
+      xlCelda(ws, r, 1, '  ' + x.codigo);
+      xlCelda(ws, r, 3, x.descripcion);
+      xlCelda(ws, r, 5, x.unidad, letraAN(), 'center');
+      if (!x.porcentaje && x.cantidad != null) {
+        const q = x.cantidad;
+        // Menos de 0.01: con 3 decimales como Power Cost; con más si los tiene.
+        xlCelda(ws, r, 6, q, letraAN(), null, q !== 0 && Math.abs(q) < 0.01 ? (q === Math.round(q * 1000) / 1000 ? FMT_CANT3 : '#,##0.000###') : FMT_MONTO);
+      }
+      xlCelda(ws, r, 7, x.porcentaje ? null : x.precio, letraAN(), null, FMT_PRECIO);
+      xlCelda(ws, r, 8, x.costo, letraAN(), null, FMT_MONTO);
+    }
+    ws.getCell(r, 8).border = { bottom: { style: 'hair' } };
+    xlCelda(ws, ++r, 8, Lector.r2(xs.reduce((s, x) => s + x.costo, 0)), letraAN(8, true), null, FMT_MONTO); xlAlto(ws, r, 10.2);
+  }
+  // Pie: raya de cierre, «Total :» y «Son :»
+  xlRaya(ws, ++r, nCol, 'bottom', 'thin'); xlAlto(ws, r, 5.25); xlAlto(ws, ++r, 5.25);
+  xlCelda(ws, ++r, 6, 'Total :', letraTNR(8), 'right');
+  xlCelda(ws, r, 8, d.total, letraAN(9, true), null, FMT_MONTO); xlAlto(ws, r, 13.2);
+  xlCelda(ws, ++r, 1, 'Son :', { ...letraArial(8, true), italic: true }, 'right');
+  xlCelda(ws, r, 2, solesEnLetras(d.total, 'NUEVOS SOLES'), { ...letraArial(8, true), italic: true }); xlAlto(ws, r, 10.2);
+}
+
+// Los filtros puestos en el Balance, para la fila 3 de la hoja 2.
+function filtrosBalanceTexto() {
+  const b = balEstado, f = [], n = v => f2(v);
+  // Las categorías apagadas: «sin Mano de obra», «sin Mano de obra ni Equipo», «sin Mano de obra, Equipo ni Subcontratos»
+  const sin = CATS.filter(([c]) => !b.cats.has(c)).map(([, nm]) => nm);
+  if (sin.length) f.push('sin ' + (sin.length > 1 ? sin.slice(0, -1).join(', ') + ' ni ' + sin.at(-1) : sin[0]));
+  if (b.q.trim()) f.push(`Buscar «${b.q.trim()}»`);
+  if (b.pmin != null || b.pmax != null) f.push('Precio S/ ' + (b.pmin != null && b.pmax != null ? `${n(b.pmin)} a ${n(b.pmax)}` : b.pmin != null ? `desde ${n(b.pmin)}` : `hasta ${n(b.pmax)}`));
+  if (b.cmin != null || b.cmax != null) f.push('Costo S/ ' + (b.cmin != null && b.cmax != null ? `${n(b.cmin)} a ${n(b.cmax)}` : b.cmin != null ? `desde ${n(b.cmin)}` : `hasta ${n(b.cmax)}`));
+  if (b.soloA) f.push('Solo A');
+  return f.length ? 'Filtros: ' + f.join('; ') : 'Sin filtros';
+}
+
+// Hoja 2: lo filtrado en el Balance, en una tabla plana de mayor a menor costo con el filtro de Excel, para ordenar y filtrar.
+function hojaAbc(ws, t) {
+  const xs = filtradosBalance().sort((a, b) => b.costo - a.costo);
+  const tot = Lector.r2(xs.reduce((s, x) => s + x.costo, 0)), nCol = 11, cab = 5;
+  const nombreCat = c => (CATS.find(([k]) => k === c) || [c, 'Subpartidas'])[1];
+  ws.columns = [12, 8, 42, 6, 12, 11, 13, 12, 13, 7, 10].map(width => ({ width }));
+  xlPagina(ws, cab, false);
+  xlCelda(ws, 1, 1, 'Análisis ABC de insumos', letraTNR(14)); xlAlto(ws, 1, 21);
+  xlCelda(ws, 2, 1, 'Proyecto', letraTNR(8)); xlCelda(ws, 2, 2, D.encabezado.Proyecto || '', letraArial(8)); xlAlto(ws, 2, 12);
+  xlCelda(ws, 3, 1, 'Alcance', letraTNR(8));
+  xlCelda(ws, 3, 2, `${t ? `Título ${t.item} ${t.descripcion}` : 'Todo el proyecto'} · ${filtrosBalanceTexto()} · ${xs.length.toLocaleString('en-US')} insumos · S/ ${f2(tot)}`, letraAN(8, true));
+  xlAlto(ws, 3, 12);
+  xlRaya(ws, cab, nCol, 'top', 'thin'); xlRaya(ws, cab, nCol, 'bottom', 'medium'); xlAlto(ws, cab, 16.5);
+  ['Categoría', 'Código', 'Insumo', 'Und.', 'Cantidad', 'Precio S/', 'Costo S/', '% del total', '% acumulado', 'ABC', 'Partidas']
+    .forEach((v, i) => { const x = xlCelda(ws, cab, i + 1, v, letraTNR(9), i === 3 || i === 9 ? 'center' : i >= 4 ? 'right' : null);
+      if (i >= 4 && i !== 9) x.alignment = { ...x.alignment, indent: 2 }; });   // que el botón del filtro no tape el rótulo
+  let r = cab, acum = 0;
+  for (const x of xs) {
+    acum += x.costo; r++;
+    xlCelda(ws, r, 1, nombreCat(x.categoria)); xlCelda(ws, r, 2, x.codigo); xlCelda(ws, r, 3, x.descripcion);
+    xlCelda(ws, r, 4, x.unidad, letraAN(), 'center');
+    xlCelda(ws, r, 5, x.porcentaje ? null : x.cantidad, letraAN(), null, FMT_MONTO);
+    xlCelda(ws, r, 6, x.porcentaje ? null : x.precio, letraAN(), null, FMT_PRECIO);
+    xlCelda(ws, r, 7, x.costo, letraAN(), null, FMT_MONTO);
+    xlCelda(ws, r, 8, tot ? x.costo / tot : 0, letraAN(), null, '0.00 %');
+    xlCelda(ws, r, 9, tot ? Math.min(acum / tot, 1) : 0, letraAN(), null, '0.00 %');
+    xlCelda(ws, r, 10, x.abc, letraAN(8, true), 'center');
+    xlCelda(ws, r, 11, x.nPartidas, letraAN(), null, '#,##0');
+    xlAlto(ws, r, 12);
+  }
+  if (xs.length) ws.autoFilter = { from: { row: cab, column: 1 }, to: { row: r, column: nCol } };
+  r++;
+  xlRaya(ws, r, nCol, 'top', 'thin');
+  xlCelda(ws, r, 1, 'Total', letraTNR(9)); xlCelda(ws, r, 3, `${xs.length.toLocaleString('en-US')} insumos`);
+  xlCelda(ws, r, 7, tot, letraAN(8, true), null, FMT_MONTO); xlCelda(ws, r, 8, tot ? 1 : 0, letraAN(), null, '0.00 %');
+  xlAlto(ws, r, 13.2);
+}
+
+// El Excel de antes, sin formato (SheetJS): solo si ExcelJS no carga.
+function exportarBalanceSinFormato() {
   const d = datosBalance(), fs = ordenarBalance(filtradosBalance());
   const t = balAlc ? D.filas[porItemFila[balAlc]] : null;
   const filas = [[`Balance de insumos · ${t ? t.item + ' ' + t.descripcion : 'Todo el proyecto'}`], [D.encabezado.Proyecto || ''], [`Costo del alcance`, d.total], [],

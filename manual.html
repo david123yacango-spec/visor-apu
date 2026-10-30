@@ -183,14 +183,19 @@ footer{max-width:880px;margin:0 auto;padding:0 16px 32px;font-size:var(--t-aux);
 
   <section class="paso" id="balance">
     <header><span class="n">7</span><h2>Balance de insumos</h2></header>
-    <p>En la cabecera, <b>Balance de insumos</b> (en el celular, el enlace al pie del presupuesto) muestra todos los insumos del proyecto con su <b>cantidad total</b> y su <b>costo</b>, como la lista de insumos de Power Cost: el redondeo de cada partida se reparte en partes iguales entre sus insumos, la cantidad va a 2 decimales y el costo es cantidad × precio. Los céntimos que faltan para el costo directo se cierran en herramientas manuales. Desde el resumen de un título, <b>Balance de insumos de este título</b> muestra solo los de ese título.</p>
+    <p>En la cabecera, la pestaña <b>Balance de insumos</b> (la elegida va en azul; en una pantalla angosta o en el celular, las dos pestañas bajan a una segunda fila) muestra todos los insumos del proyecto con su <b>cantidad total</b> y su <b>costo</b>, como la lista de insumos de Power Cost: el redondeo de cada partida se reparte en partes iguales entre sus insumos, la cantidad va a 2 decimales y el costo es cantidad × precio. Los céntimos que faltan para el costo directo se cierran en herramientas manuales. Desde el resumen de un título, <b>Balance de insumos de este título</b> muestra solo los de ese título.</p>
     <ul>
       <li><b>Alcance:</b> todo el proyecto o el título seleccionado.</li>
       <li><b>Filtros:</b> buscar por nombre o código, categorías (clic en cada una), rango de precio y de costo, y orden. <b>Limpiar filtros</b> vuelve a todo.</li>
       <li><b>Curva ABC:</b> los insumos que hacen el 80 % del costo son la clase A; «Solo los del 80 %» deja solo esos. Son los que conviene cotizar primero.</li>
       <li><b>Ver la curva ABC (Pareto de los 15 mayores):</b> una barra por cada uno de los 15 insumos de mayor costo (azul la clase A, azul claro la B, gris la C) y la línea del costo acumulado, con la raya del 80 %. Al pasar el mouse se ve el insumo, su costo y su %; un clic en la barra la marca y lleva a ese insumo en la tabla. Se pliega y recuerda cómo la dejó.</li>
       <li>La tabla va agrupada por categoría y muestra 50 por grupo; «Mostrar los otros…» abre el resto. Clic en un encabezado ordena; clic en un insumo, dónde se usa.</li>
-      <li><b>Exportar a Excel</b> baja lo filtrado, con los subtotales por categoría y la clase ABC.</li>
+      <li><b>Exportar a Excel</b> baja un libro con dos hojas:
+        <ul>
+          <li><b>Lista de insumos</b>, como la lista de insumos de Power Cost: mano de obra, materiales, equipo y servicios con sus subtotales, el total y el «Son :», lista para imprimir en A4. Va siempre con todo el alcance, sin filtros, así que su total es el costo directo del alcance.</li>
+          <li><b>Análisis ABC</b>, con lo filtrado: categoría, % del total, % acumulado, clase ABC y n.º de partidas, de mayor a menor costo y con el filtro de Excel. Arriba dice qué filtros tenía puestos.</li>
+        </ul>
+        Sin conexión a internet sale un Excel sin formato.</li>
       <li>El total puede diferir unos céntimos del costo directo por los redondeos de cada partida; el visor lo indica.</li>
     </ul>
     <figure><img src="manual/10-balance.png" alt="Balance de insumos: tarjetas por categoría, curva ABC y tabla" loading="lazy"></figure>
