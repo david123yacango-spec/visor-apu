@@ -371,18 +371,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
   .grilla td.num{font-size:var(--t-aux)}
   .cabpartida{grid-template-columns:1fr}
   .pu{text-align:left}
-  .lineas thead{display:none}
-  .lineas,.lineas tbody,.lineas tr,.lineas td{display:block;width:100%}
-  tr.linea{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;padding:8px 8px 4px;border-bottom:0}
-  tr.linea td{border:0;padding:2px 0}
-  tr.linea td.cod{grid-column:1/-1;order:-2}
-  tr.linea td.ins{grid-column:1/-1;order:-1;font-weight:500}
-  tr.linea td.num::before,tr.linea td.und::before{content:attr(data-l);display:block;font-size:10px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;font-family:var(--f-texto)}
-  tr.linea td.num{text-align:left}
-  tr.linea td.sinvalor{display:none}
-  tr.cuenta td{padding:8px}
-  tr.subtotal{display:flex;justify-content:space-between;background:var(--t)}
-  tr.subtotal td{width:auto}
+  /* las líneas del APU en tarjetas: #apu.e-tarjetas, al final de la hoja (encajarApu la pone a ≤ 700 px) */
   .cat header{grid-template-columns:auto 1fr auto;grid-template-areas:"p h s" "p q b"}
   .cat header .vercalc{grid-area:b;justify-self:end}
   .cat header .punto{grid-area:p}.cat header h2{grid-area:h}.cat header .sub{grid-area:s}.cat header .pct{grid-area:q}
@@ -562,6 +551,87 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
 #balance .bal tfoot,#balance .bal tfoot tr,#balance .bal tfoot td{display:block}
 }
 
+/* ══ «Cant. total» por insumo (PEDIDO 01, 07-11-2026; diseño VA8–VA15) ══
+   Columna «Cant. total» = cantidad × metrado, achurada con el color de la categoría; raya de color a la izquierda de cada
+   categoría; el APU angosto se encaja midiendo (encajarApu); la cifra lleva al Balance de todo el proyecto y «← Volver». */
+/* VA15 · borde de cada categoría: raya de 3 px de su color, de la cabecera al subtotal */
+.cat{border-left:3px solid var(--c)}
+.cat header{padding-left:13px}
+/* VA8–VA9 · la columna. --tot-fondo va en .cat porque --t (el tinte de la categoría) se define en .mo/.mat/.eq/.sc/.sp.
+   Achurado: el tinte y rayas diagonales de 1.5 px cada 7 px de su color al 20 % (tinte liso: --tot-fondo:var(--t)). */
+.cat{--tot-fondo:repeating-linear-gradient(135deg,var(--t) 0 5.5px,color-mix(in srgb,var(--c) 20%,var(--t)) 5.5px 7px);--tot-borde:color-mix(in srgb,var(--c) 35%,transparent)}
+.lineas th.tot,.lineas td.tot{background:var(--tot-fondo);border-left:1px solid var(--tot-borde);border-right:1px solid var(--tot-borde)}
+.lineas th.tot{background:var(--t);color:var(--tinta);font-weight:600}
+.lineas td.tot{font-weight:600}
+.lineas th small{display:block;font-family:var(--f-datos);font-weight:400;font-size:11px;line-height:1.2}
+.lineas th.tot small{color:var(--tinta-2)}
+.lineas th{vertical-align:bottom}
+.lineas th .nw{white-space:nowrap}
+.lineas .solo-angosto,td.cant .tp,td.ins .cod2{display:none}
+/* la cifra se puede pulsar: subrayado punteado, como el nombre del insumo */
+.ir-bal{all:unset;cursor:pointer;color:var(--tinta);border-bottom:1px dotted var(--linea-fuerte)}
+.ir-bal:hover,.ir-bal:focus-visible{color:var(--azul);border-color:var(--azul)}
+.ir-bal:focus-visible{outline:2px solid var(--azul);outline-offset:2px;border-radius:2px}
+.lineas td.tot .sinv{color:var(--tinta-2)}
+/* el total debajo de la cantidad (APU angosto): pastilla con el tinte liso (las rayas cruzan las cifras chicas) */
+td.cant .tp{font-size:var(--t-aux);color:var(--tinta-2);margin-top:3px;font-weight:600;width:fit-content;margin-left:auto;padding:1px 5px;border-radius:3px;background:var(--t)}
+td.cant .tp .ir-bal{color:var(--tinta-2)}
+/* VA10 · el APU angosto: encajarApu() deja la primera forma en la que todas las tablas caben */
+#apu.e-cod .lineas th.c-cod,#apu.e-cod .lineas td.cod{width:0;padding:0;border:0;font-size:0;background:none}
+#apu.e-cod td.ins .cod2{display:block;font-family:var(--f-datos);font-size:11px;color:var(--gris)}
+#apu.e-cod .lineas th,#apu.e-cod .lineas td{padding-left:6px;padding-right:6px}
+#apu.e-cod .lineas th{white-space:normal}
+/* las celdas que se van quedan en la grilla con ancho 0 (con display:none el colspan del subtotal se descuadra) */
+#apu.e-debajo td.cant .tp,#apu.e-debajo .lineas .solo-angosto{display:block}
+#apu.e-debajo .lineas th.tot,#apu.e-debajo .lineas td.tot{width:0;padding:0;border:0;font-size:0;background:none}
+#apu.e-debajo .lineas th.tot > *,#apu.e-debajo .lineas td.tot > *{display:none}
+/* VA10–VA11 · tarjetas: la hoja del celular, escrita una vez. encajarApu pone .e-tarjetas a ≤ 700 px y cuando ni la forma
+   con el total debajo cabe en el panel. */
+#apu.e-tarjetas .lineas thead{display:none}
+#apu.e-tarjetas .lineas,#apu.e-tarjetas .lineas tbody,#apu.e-tarjetas .lineas tr,#apu.e-tarjetas .lineas td{display:block;width:100%}
+#apu.e-tarjetas tr.linea{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;padding:8px 8px 4px;border-bottom:0}
+#apu.e-tarjetas tr.linea td{border:0;padding:2px 0}
+#apu.e-tarjetas tr.linea td.cod{grid-column:1/-1;order:-2}
+#apu.e-tarjetas tr.linea td.ins{grid-column:1/-1;order:-1;font-weight:500}
+#apu.e-tarjetas tr.linea td.num::before,#apu.e-tarjetas tr.linea td.und::before{content:attr(data-l);display:block;font-size:10px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;font-family:var(--f-texto)}
+#apu.e-tarjetas tr.linea td.num{text-align:left}
+#apu.e-tarjetas tr.linea td.sinvalor{display:none}
+#apu.e-tarjetas tr.cuenta td{padding:8px}
+#apu.e-tarjetas tr.subtotal{display:flex;justify-content:space-between;background:var(--t)}
+#apu.e-tarjetas tr.subtotal td{width:auto}
+/* VA11 · la tarjeta con «Cant. total»: und · cuadrilla / cantidad · cant. total / precio · parcial */
+#apu.e-tarjetas .con-tot tr.linea{grid-template-areas:"cod cod" "ins ins" "und cua" "can tot" "pre par"}
+#apu.e-tarjetas .con-tot tr.linea td.cod{grid-area:cod}#apu.e-tarjetas .con-tot tr.linea td.ins{grid-area:ins}
+#apu.e-tarjetas .con-tot tr.linea td.und{grid-area:und}#apu.e-tarjetas .con-tot tr.linea td.cant{grid-area:can}
+#apu.e-tarjetas .con-tot tr.linea td:nth-child(4){grid-area:cua}#apu.e-tarjetas .con-tot tr.linea td:nth-child(7){grid-area:pre}
+#apu.e-tarjetas .con-tot tr.linea td.par{grid-area:par}
+#apu.e-tarjetas tr.linea td.tot{grid-area:tot;border:1px solid var(--tot-borde);border-radius:var(--radio);padding:2px 6px;margin:2px 0}
+#apu.e-tarjetas tr.linea td.tot::before{color:var(--tinta-2);font-weight:400}
+/* VA13 · metrado 0: una línea gris; el chip del metrado sin negrita de color */
+.sinmet{margin:-4px 16px 12px;padding:8px 12px;border-radius:var(--radio);background:var(--superficie-2);color:var(--tinta-2);font-size:var(--t-aux)}
+.chips span.cero b{color:var(--tinta-2)}
+/* VA12 · «Ver cálculo»: la cuenta del total, debajo de la de hoy */
+tr.cuenta .ft{border-top:1px dashed var(--linea-fuerte);margin-top:6px}
+tr.cuenta .ft .lbl{color:var(--tinta-2);font-family:var(--f-texto);font-weight:600}
+tr.cuenta .ft .sin{color:var(--tinta-2);font-family:var(--f-texto)}
+.cajon tr.cuenta .ft{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-top:1px dashed var(--linea-fuerte);margin-top:4px;padding-top:4px}
+.cajon tr.cuenta .ft .lbl{font-weight:600}
+/* VA13 · cajón de la subpartida con la cantidad total en la partida */
+.cajon .enp-sp{font-size:var(--t-aux);color:var(--tinta-2);padding:8px 12px;border:1px solid var(--linea);border-radius:var(--radio);margin-top:8px}
+.cajon .enp-sp b{font-family:var(--f-datos);color:var(--tinta)}
+.cajon table.mini tr.th td{color:var(--tinta-2);font-size:11px;border-bottom:1px solid var(--linea-fuerte)}
+.cajon table.mini td.tot{background:var(--t);font-weight:600;white-space:nowrap;color:var(--tinta-2)}
+.cajon table.mini td.tot .ir-bal{color:var(--tinta)}
+/* VA14 · al Balance (aviso fijo arriba, línea marcada, nota de los céntimos) y de vuelta */
+#balance .desde{position:sticky;top:8px;z-index:4;box-shadow:0 4px 14px rgba(0,0,0,.10);display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:var(--superficie);border:1px solid var(--linea);border-left:3px solid var(--azul);border-radius:var(--radio);font-size:var(--t-tabla);color:var(--tinta-2)}
+#balance .desde b{color:var(--tinta)}
+#balance .desde .n{font-family:var(--f-datos);font-weight:600;color:var(--tinta)}
+#balance .desde .aviso-f{color:var(--ambar);font-size:var(--t-aux)}
+#balance table.bal tr.desde-fila td{background:var(--azul-tinte)}
+#balance table.bal tr.desde-fila td:first-child{box-shadow:inset 3px 0 0 var(--azul)}
+#balance table.bal tr.desde-fila td.cod,#balance table.bal tr.desde-fila td.und,#balance table.bal tr.desde-fila .mini span{color:var(--tinta-2)}
+#balance table.bal tr.desde-nota td{background:var(--azul-tinte);box-shadow:inset 3px 0 0 var(--azul);color:var(--tinta-2);font-size:var(--t-aux);white-space:normal;padding:0 8px 8px 11px;grid-column:1/-1}
+tr.linea.vuelta td{background:var(--azul-tinte);transition:background .3s}
 </style>
 </head>
 <body>
@@ -688,6 +758,7 @@ footer.pie{max-width:1720px;margin:0 auto;padding:8px 16px 32px;font-size:var(--
       <dt id="ay-cuadrilla">Cuadrilla</dt><dd>Cuántas personas (o máquinas) de ese tipo trabajan juntas. 0.1 es un capataz que atiende diez cuadrillas.</dd>
       <dt id="ay-rendimiento">Rendimiento</dt><dd>Cuántas unidades hace la cuadrilla en un día de 8 horas. Va en la cabecera y solo afecta a las líneas por hora o por día.</dd>
       <dt id="ay-cantidad">Cantidad</dt><dd>Lo que consume una unidad de partida. En hh sale de la cuenta <span class="datos">cuadrilla × 8 ÷ rendimiento</span>, con 4 decimales. En materiales es el consumo con desperdicio.</dd>
+      <dt id="ay-total">Cant. total</dt><dd><span class="datos">Cantidad × metrado</span>: lo que lleva toda la partida de ese insumo. Clic en la cifra: su línea en el Balance de insumos.</dd>
       <dt id="ay-precio">Precio</dt><dd>Precio del insumo, único en todo el presupuesto. En %MO el precio es el subtotal de mano de obra de esta partida.</dd>
       <dt id="ay-parcial">Parcial</dt><dd><span class="datos">cantidad × precio</span>, redondeado a 2 decimales línea por línea. Los subtotales suman parciales ya redondeados.</dd>
       <dt id="ay-pu">P.U.</dt><dd>Suma de los cuatro subtotales. <span class="datos">Metrado × P.U.</span> es el parcial de la partida, que sube a su título.</dd>
@@ -1228,7 +1299,18 @@ const R4 = '<span class="r" title="Redondeo a 4 decimales, mitad hacia arriba">R
 const R2 = '<span class="r" title="Redondeo a 2 decimales, mitad hacia arriba">R2</span>';
 const cerca = (a, b) => Math.abs(a - b) < 1e-9;
 
-function cuenta(l, apu) {
+// J1 · «Cant. total» (PEDIDO 01, 07-11-2026): la cantidad del insumo en toda la partida = cantidad por unidad × metrado, a 2
+// decimales (si da 0.00, a 4, como el Balance). Los porcentajes (%MO, %MT) no tienen cantidad.
+const esPct = l => l.tipo === 'pmo' || l.tipo === 'pmt';
+function totalDe(l, m) {
+  if (!m || esPct(l)) return null;
+  const x = (l.cantidad || 0) * m, v = Lector.r2(x);
+  return v === 0 && x !== 0 ? Lector.r4(x) : v;
+}
+const fT = v => v == null ? '—' : v !== 0 && Math.abs(v) < 0.005 ? f4(v) : f2(v);
+const unidadPartida = f => esc(f.unidad || f.apu?.unidad || '');
+
+function cuenta(l, apu, f) {
   const u = unidadVista(l.unidad), rend = apu.rendimiento, ru = apu.unidad;
   const tramos = [];
   const eq = '<span class="igual">=</span>', fl = '<span class="flecha">→</span>';
@@ -1249,7 +1331,30 @@ function cuenta(l, apu) {
   }
   let extra = '';
   if (Math.abs(l.calcParcial - (l.parcial || 0)) > 0.005) extra = `<span class="mal">el Excel trae S/ ${f2(l.parcial)}; la cuenta da S/ ${f2(l.calcParcial)}</span>`;
-  return `<div class="f">${tramos.join(fl)}${extra}</div>`;
+  // J2 · con metrado, debajo va la cuenta del total en la partida
+  let enp = '';
+  if (f && f.metrado != null) {
+    const m = f.metrado, up = unidadPartida(f);
+    let t;
+    if (!m) t = `<span class="sin">Metrado 0.00 ${up}: no hay total en la partida</span>`;
+    else if (esPct(l)) t = `<span>S/ ${f2(l.parcial)} por ${up} × ${f2(m)} ${up}</span>${eq}<span class="res">S/ ${f2(Lector.r2((l.parcial || 0) * m))}</span><span class="sin">es un porcentaje: no tiene cantidad</span>`;
+    else {
+      const bruto = (l.cantidad || 0) * m, v = totalDe(l, m);
+      t = `<span>${f4(l.cantidad)} ${esc(u)} por ${up} × ${f2(m)} ${up}</span>${eq}` + (cerca(bruto, v) ? `<span class="res">${fT(v)} ${esc(u)}</span>`
+        : `<span>${+bruto.toFixed(6)}</span><span class="fin">${fl}<span class="res">${fT(v)} ${esc(u)}</span>${Lector.r2(bruto) === 0 ? R4 : R2}</span>`);
+    }
+    enp = `<div class="f ft"><span class="lbl">En la partida</span>${t}</div>`;
+  }
+  return `<div class="f">${tramos.join(fl)}${extra}</div>${enp}`;
+}
+
+// J3 · La celda del total: botón que lleva al Balance; en la línea de una subpartida, texto (sus insumos están en «ver su APU»).
+function celdaTotal(l, f, conUnidad) {
+  const m = f.metrado, v = totalDe(l, m), u = conUnidad ? ' ' + esc(unidadVista(l.unidad)) : '';
+  if (!m) return `<span class="sinv" title="Metrado 0.00: no hay total">—</span>`;
+  if (esPct(l)) return `<span class="sinv" title="Es un porcentaje: en la partida son S/ ${f2(Lector.r2((l.parcial || 0) * m))} (ver su cálculo)">—</span>`;
+  if (l.subpartida) return `<span title="${f2(m)} × ${f4(l.cantidad)}: lo que lleva la partida de la subpartida; sus insumos están en «ver su APU»">${fT(v)}${u}</span>`;
+  return `<button class="ir-bal" data-k="${esc(l.codigo + '|' + l.descripcion)}" title="${esc(l.descripcion)}: ${fT(v)} ${esc(unidadVista(l.unidad))} en esta partida · clic: su línea en el Balance de insumos">${fT(v)}${u}</button>`;
 }
 
 const AYUDA_COL = {
@@ -1275,19 +1380,23 @@ function pintarApu(f) {
   const cuadrilla = a.lineas.filter(l => l.categoria === 'mo' && l.cuadrilla != null)
     .map(l => `${fn(l.cuadrilla)} ${esc(plural(l.descripcion.toLowerCase(), l.cuadrilla))}`).join(' · ');
   const nMo = a.lineas.filter(l => l.categoria === 'mo').length;
+  const m = f.metrado, up = unidadPartida(f), hayM = !!m, col = m != null;   // J4: sin metrado en el presupuesto, no hay columna
+  const metTxt = col ? `× ${f2(m)} ${up}` : '';
   let h = miga(f);
   h += `<div class="cabpartida"><div><div class="it">Partida ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1><div class="chips">` +
     `<span class="ch-und">Unidad <b>${esc(f.unidad || a.unidad)}</b></span>` +
     (a.rendimiento ? `<span>Rendimiento <b>${f4(a.rendimiento)} ${esc(a.unidad)}/día</b></span>` : `<span>Rendimiento <b>—</b></span>`) +
     (cuadrilla ? `<span>Cuadrilla <b>${cuadrilla}</b></span>` : '') +
-    (f.metrado != null ? `<span class="ch-met">Metrado <b>${f2(f.metrado)} ${esc(f.unidad)}</b></span>` : '') +
+    (col ? `<span class="ch-met${hayM ? '' : ' cero'}">Metrado <b>${f2(m)} ${esc(f.unidad)}</b></span>` : '') +
     `</div></div><div class="pu"><div class="lbl">Precio unitario</div><div class="val"><small>S/</small>${f2(cu)}</div><div class="por">por ${esc(f.unidad || a.unidad)} · suma de ${cats.length === 5 ? 'las cinco categorías' : 'las cuatro categorías'}</div></div></div>`;
   if (a.diferencias.length) h += `<div class="revisar">Al rehacer las cuentas no cierra: ${esc(a.diferencias.slice(0, 4).join(' · '))}. Revise este APU en el programa.</div>`;
   if (f.precio != null && Math.abs(f.precio - cu) > 0.005) h += `<div class="revisar">El presupuesto usa P.U. S/ ${f2(f.precio)} y el APU da S/ ${f2(cu)}.</div>`;
   // barra de peso
   h += `<div class="peso"><div class="barra">` + cats.filter(([c]) => sub(c) > 0).map(([c, n]) => `<i class="${c}" style="width:${pct(c).toFixed(2)}%" title="${n} ${pct(c).toFixed(2)} %"></i>`).join('') +
     `</div><div class="ley">` + cats.map(([c, n]) => `<span class="${c}">${n} <b>${f2(sub(c))}</b>${sub(c) > 0 ? ` · ${pct(c).toFixed(1)} %` : ''}</span>`).join('') + `</div></div>`;
-  h += `<div class="herrapu"><span>«Ver cálculo»: de dónde sale cada número</span><span>·</span><span>Clic en una línea: su cálculo</span><span>·</span><span>Clic en un insumo: dónde más se usa</span></div>`;
+  if (col && !hayM) h += `<div class="sinmet">Metrado 0.00 ${up}: el APU vale por ${up} y no hay total en la partida.</div>`;   // J4
+  h += `<div class="herrapu"><span>«Ver cálculo»: de dónde sale cada número</span><span>·</span><span>Clic en una línea: su cálculo</span><span>·</span><span>Clic en un insumo: dónde más se usa</span>` +
+    (hayM ? `<span>·</span><span>Clic en la cantidad total: su línea en el Balance</span>` : '') + `</div>`;                    // J4
   // categorías
   cats.forEach(([c, n]) => {
     const ls = a.lineas.filter(l => l.categoria === c);
@@ -1297,19 +1406,24 @@ function pintarApu(f) {
       `<span class="pct">${sub(c) > 0 ? pct(c).toFixed(2) + ' % del P.U.' : ''}</span><span class="sub"><small>S/</small>${f2(sub(c))}</span>` +
       (ls.length ? `<button class="vercalc" aria-pressed="${enc}" title="Mostrar u ocultar el cálculo de cada línea de ${n.toLowerCase()}">Ver cálculo</button>` : '') + `</header>`;
     if (!ls.length) { h += `<div class="vacia">Esta partida no tiene ${n.toLowerCase()}.</div></section>`; return; }
-    h += `<table class="lineas"><thead><tr><th>Código</th><th>Insumo</th><th>Und.</th>` +
-      `<th class="num">Cuadrilla${c === 'mo' || c === 'eq' ? ' ' + q(AYUDA_COL.cuadrilla, 'cuadrilla') : ''}</th>` +
-      `<th class="num">Cantidad ${q(AYUDA_COL.cantidad[c], 'cantidad')}</th><th class="num">Precio S/${ls.some(l => l.tipo === 'pmo' || l.tipo === 'pmt' || l.subpartida) ? ' ' + q(AYUDA_COL.precio, 'precio') : ''}</th><th class="num">Parcial S/</th></tr></thead><tbody>`;
+    // J4 · th.c-cod, .nw, «y cant. total» (solo en el APU angosto) y la columna «Cant. total» con el metrado debajo
+    h += `<table class="lineas${col ? ' con-tot' : ''}"><thead><tr><th class="c-cod">Código</th><th>Insumo</th><th>Und.</th>` +
+      `<th class="num"><span class="nw">Cuadrilla${c === 'mo' || c === 'eq' ? ' ' + q(AYUDA_COL.cuadrilla, 'cuadrilla') : ''}</span></th>` +
+      `<th class="num cant"><span class="nw">Cantidad ${q(AYUDA_COL.cantidad[c], 'cantidad')}</span>${col ? `<small class="solo-angosto">y cant. total</small>` : ''}</th>` +
+      (col ? `<th class="num tot" title="Cantidad × metrado: lo que lleva toda la partida">Cant. total<small>${metTxt}</small></th>` : '') +
+      `<th class="num"><span class="nw">Precio S/${ls.some(l => l.tipo === 'pmo' || l.tipo === 'pmt' || l.subpartida) ? ' ' + q(AYUDA_COL.precio, 'precio') : ''}</span></th><th class="num">Parcial S/</th></tr></thead><tbody>`;
     ls.forEach(l => {
       const k = l.codigo + '|' + l.descripcion;
       const dif = Math.abs(l.calcParcial - (l.parcial || 0)) > 0.005;
-      h += `<tr class="linea${dif ? ' dif' : ''}"><td class="cod">${esc(l.codigo)}</td><td class="ins"><button data-ins="${esc(k)}"${l.subpartida ? ` data-sp="${esc(l.codigo)}"` : ''}>${esc(l.descripcion)}</button>${l.subpartida ? `<button class="versp" data-sp="${esc(l.codigo)}">ver su APU ›</button>` : ''}</td>` +
+      h += `<tr class="linea${dif ? ' dif' : ''}" data-k="${esc(k)}"><td class="cod">${esc(l.codigo)}</td><td class="ins"><span class="cod2">${esc(l.codigo)}</span><button data-ins="${esc(k)}"${l.subpartida ? ` data-sp="${esc(l.codigo)}"` : ''}>${esc(l.descripcion)}</button>${l.subpartida ? `<button class="versp" data-sp="${esc(l.codigo)}">ver su APU ›</button>` : ''}</td>` +
         `<td class="und" data-l="Und.">${esc(unidadVista(l.unidad))}</td><td class="num${l.cuadrilla == null ? ' sinvalor' : ''}" data-l="Cuadrilla">${fn(l.cuadrilla)}</td>` +
-        `<td class="num" data-l="Cantidad">${f4(l.cantidad)}</td><td class="num" data-l="Precio S/">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num par" data-l="Parcial S/">${f2(l.parcial)}</td></tr>` +
-        `<tr class="cuenta"><td colspan="7">${cuenta(l, a)}</td></tr>`;
+        `<td class="num cant" data-l="Cantidad">${f4(l.cantidad)}${col ? `<span class="tp">${celdaTotal(l, f, true)}</span>` : ''}</td>` +
+        (col ? `<td class="num tot" data-l="Cant. total · ${metTxt}">${celdaTotal(l, f, false)}</td>` : '') +
+        `<td class="num" data-l="Precio S/">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num par" data-l="Parcial S/">${f2(l.parcial)}</td></tr>` +
+        `<tr class="cuenta"><td colspan="${col ? 8 : 7}">${cuenta(l, a, f)}</td></tr>`;
     });
     const suma = ls.length <= 4 ? `${n} · ${ls.map(l => f2(l.parcial)).join(' + ')}` : `${n} · suma de los ${ls.length} parciales`;
-    h += `<tr class="subtotal"><td colspan="6">${suma}</td><td class="num">${f2(sub(c))}</td></tr></tbody></table></section>`;
+    h += `<tr class="subtotal"><td colspan="${col ? 7 : 6}">${suma}</td><td class="num">${f2(sub(c))}</td></tr></tbody></table></section>`;
   });
   // cierre
   const parcial = f.metrado != null ? Lector.r2(f.metrado * cu) : null;
@@ -1329,12 +1443,32 @@ function pintarApu(f) {
   }));
   // Clic en una línea (fuera del nombre del insumo): solo su cálculo.
   cont.querySelectorAll('tr.linea').forEach(tr => tr.addEventListener('click', e => {
-    if (e.target.closest('td.ins button')) return;
+    if (e.target.closest('td.ins button, .ir-bal')) return;                                                                  // J4: .ir-bal
     const cu = tr.nextElementSibling; if (cu && cu.classList.contains('cuenta')) cu.classList.toggle('abierta');
   }));
-  cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => b.dataset.sp ? verSubpartida(b.dataset.sp) : dondeSeUsa(b.dataset.ins, f.item)));
+  cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => b.dataset.sp ? (spDesde = f, verSubpartida(b.dataset.sp)) : dondeSeUsa(b.dataset.ins, f.item)));   // J5: spDesde
+  cont.querySelectorAll('.ir-bal').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); irAlBalance(b.dataset.k); }));                                             // J6
   cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
+  encajarApu();                                                                                                               // J7
 }
+
+// J7 · El APU angosto (VA10): se prueba cada forma, de la más completa a las tarjetas, y se queda la primera en la que todas
+// las tablas caben en el panel. Se mide de verdad (sirve con cifras largas: 193,143.08). En el celular (≤ 700 px), tarjetas.
+const FORMAS = [[], ['e-cod'], ['e-cod', 'e-debajo'], ['e-tarjetas']];
+function encajarApu() {
+  const apu = $('#apu'); if (!apu || !apu.querySelector('table.lineas')) return;
+  const todas = ['e-cod', 'e-debajo', 'e-tarjetas'];
+  if (matchMedia('(max-width:700px)').matches) { apu.classList.remove('e-cod', 'e-debajo'); apu.classList.add('e-tarjetas'); return; }
+  const ancho = apu.clientWidth; if (!ancho) return;   // panel oculto (en el Balance): se mide al volver
+  for (const fm of FORMAS) {
+    apu.classList.remove(...todas); apu.classList.add(...fm);
+    if ([...apu.querySelectorAll('table.lineas')].every(t => t.scrollWidth <= ancho)) break;
+  }
+}
+let anchoApu = 0;
+new ResizeObserver(es => { const w = Math.round(es[0].contentRect.width); if (w !== anchoApu) { anchoApu = w; encajarApu(); } }).observe($('#apu'));
+// con la fuente de reserva la tabla mide otra cosa y el ancho del panel no cambia: se mide otra vez cuando llegan las fuentes
+document.fonts?.ready.then(encajarApu);
 
 function ancestros(f) {
   const it = f.item.split('.'), r = [];
@@ -1371,26 +1505,44 @@ function otrosCampamentos(f) {
 if (leer('visor.correo')) alEntrar();
 
 // APU de una subpartida («SP 11884»), en el cajón lateral, con la cuenta de cada línea.
+// J5 · Si se abre desde una partida con metrado, cada insumo lleva su «Cant. total» en esa partida (sale de la cantidad de la
+// subpartida sin redondear, como el Balance) y la partida va marcada en «Partidas que la usan».
+let spDesde = null;
 function verSubpartida(codigo) {
   const s = D.subpartidas?.[codigo]; if (!s) return;
+  const f = spDesde; spDesde = null;                                                                             // J5
+  const l0 = f && f.metrado ? f.apu?.lineas.find(l => l.codigo === codigo) : null;                                // J5
+  const cantSp = l0 ? (l0.cantidad || 0) * f.metrado : 0, us = esc(unidadVista(s.unidad));                       // J5
   const cu = s.cu ?? s.calcCu;
   const usan = D.apus.filter(a => a.lineas.some(l => l.codigo === codigo));
   $('#usosTitulo').textContent = `${s.descripcion} · ${codigo}`;
   let h = `<div class="res">Subpartida · P.U. <b>S/ ${f2(cu)}</b> por ${esc(s.unidad)}` + (s.rendimiento ? ` · rendimiento <b>${f4(s.rendimiento)} ${esc(s.unidad)}/día</b>` : '') +
     ` · se usa en <b>${usan.length}</b> partida${usan.length === 1 ? '' : 's'}</div>` +
+    (l0 ? `<div class="enp-sp">En la partida <b>${esc(f.item)}</b>: ${f4(l0.cantidad)} ${us} por ${unidadPartida(f)} × ${f2(f.metrado)} ${unidadPartida(f)} = <b>${f2(Lector.r2(cantSp))} ${us}</b> de subpartida</div>` : '') +   // J5
     `<p style="margin:8px 0 0;color:var(--gris);font-size:var(--t-aux)">Una subpartida es un APU dentro de otro: su costo unitario entra como precio de la línea «${esc(codigo)}».</p>`;
   catsDe(s).forEach(([c, n]) => {
     const ls = s.lineas.filter(l => l.categoria === c); if (!ls.length) return;
     const st = s.subtotales[c] ?? s.calcSubtotales[c] ?? 0;
-    h += `<div class="${c}"><h3>${n} <small>S/ ${f2(st)}</small></h3><table class="mini">` + ls.map(l =>
-      `<tr><td>${esc(l.descripcion)} <span style="color:var(--gris)">${esc(unidadVista(l.unidad))}</span></td><td class="num">${f4(l.cantidad)}</td><td class="num">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num"><b>${f2(l.parcial)}</b></td></tr>` +
-      `<tr class="cuenta"><td colspan="4">${cuenta(l, s)}</td></tr>`).join('') + `</table></div>`;
+    h += `<div class="${c}"><h3>${n} <small>S/ ${f2(st)}</small></h3><table class="mini${l0 ? ' con-tot' : ''}">` +
+      (l0 ? `<tr class="th"><td></td><td class="num">Cant.</td><td class="num">Precio</td><td class="num">Parcial</td><td class="num tot">Cant. total</td></tr>` : '') + ls.map(l => {
+      // J5 · la «Cant. total» en la partida y su cuenta (la cantidad de la subpartida con 4 decimales)
+      let tot = '', enp = '';
+      if (l0) {
+        const v = totalDe(l, cantSp), u = esc(unidadVista(l.unidad));
+        tot = `<td class="num tot">${v == null ? '—' : l.subpartida ? fT(v) : `<button class="ir-bal" data-k="${esc(l.codigo + '|' + l.descripcion)}" title="${esc(l.descripcion)}: ${fT(v)} ${u} en la partida ${esc(f.item)} · clic: su línea en el Balance de insumos">${fT(v)}</button>`}</td>`;
+        enp = `<div class="f ft"><span class="lbl">En la partida</span>` + (v == null ? `<span class="sin">es un porcentaje: no tiene cantidad</span>`
+          : `<span>${f4(l.cantidad)} ${u} × ${f4(cantSp)} ${us}</span><span class="igual">=</span><span class="res">${fT(v)} ${u}</span>`) + `</div>`;
+      }
+      return `<tr><td>${esc(l.descripcion)} <span style="color:var(--gris)">${esc(unidadVista(l.unidad))}</span></td><td class="num">${f4(l.cantidad)}</td><td class="num">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num"><b>${f2(l.parcial)}</b></td>${tot}</tr>` +
+        `<tr class="cuenta"><td colspan="${l0 ? 5 : 4}">${cuenta(l, s)}${enp}</td></tr>`;
+    }).join('') + `</table></div>`;
   });
   h += `<p style="font-size:var(--t-aux);color:var(--gris);margin:0 0 4px">Partidas que la usan:</p><ul class="usos">` +
     usan.map(a => { const fi = porItemFila[a.item]; const l = a.lineas.find(x => x.codigo === codigo);
-      return `<li data-ir="${fi}"><span class="it">${esc(a.item)}</span><span>${esc(a.descripcion)}</span><span class="q">${f4(l.cantidad)} ${esc(l.unidad)}</span></li>`; }).join('') + `</ul>`;
+      return `<li data-ir="${fi}"${f && a.item === f.item ? ' class="aqui"' : ''}><span class="it">${esc(a.item)}</span><span>${esc(a.descripcion)}</span><span class="q">${f4(l.cantidad)} ${esc(l.unidad)}</span></li>`; }).join('') + `</ul>`;   // J5: .aqui
   $('#usosCuerpo').innerHTML = h;
   $('#usosCuerpo').querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => { cerrar(); irA(+x.dataset.ir); }));
+  $('#usosCuerpo').querySelectorAll('.ir-bal').forEach(b => b.addEventListener('click', () => { cerrar(); irAlBalance(b.dataset.k, cantSp, codigo); }));   // J6
   abrir('usos'); $('#usosCuerpo').scrollTop = 0;
 }
 
@@ -1415,16 +1567,88 @@ function aplicarHash() {
     $('#tablero').hidden = true; $('#balance').hidden = false;
     if (!balDatos || balDatos.alc !== alc || balDatos.D !== D) { balAlc = alc; balDatos = null; }
     pintarBalance();
-    window.scrollTo(0, 0);
+    if (!desdeApu) window.scrollTo(0, 0);   // J6: viniendo de la «Cant. total», la página baja a su línea
   } else {
     $('#balance').hidden = true; $('#tablero').hidden = false;
     ajustarAlto();
+    if (desdeApu) volverAlApu();            // J6b: los tres caminos de vuelta pasan por aquí
   }
 }
 document.querySelectorAll('#vistas a').forEach(a => a.addEventListener('click', e => {
   e.preventDefault();
   if (a.dataset.vista === 'balance') irBalance(''); else irPresupuesto();
 }));
+
+// J6 · De la «Cant. total» al Balance de todo el proyecto: aviso fijo arriba con «← Volver a la partida», su línea marcada
+// y, si el Balance difiere por el reparto del redondeo, la nota gris debajo. Si cambia de alcance, el aviso se va.
+let desdeApu = null, desdeMarcando = false;
+function irAlBalance(k, cantSp, codSp) {
+  const f = D.filas[sel]; if (!f?.apu) return;
+  let l, v, kApu = k;
+  if (codSp) {
+    l = D.subpartidas?.[codSp]?.lineas.find(x => x.codigo + '|' + x.descripcion === k); if (!l) return;
+    v = totalDe(l, cantSp);
+    const l0 = f.apu.lineas.find(x => x.codigo === codSp); if (l0) kApu = l0.codigo + '|' + l0.descripcion;   // de vuelta se marca la línea de la subpartida
+  } else {
+    l = f.apu.lineas.find(x => x.codigo + '|' + x.descripcion === k); if (!l) return;
+    v = totalDe(l, f.metrado);
+  }
+  desdeApu = { f, k, kApu, v, u: unidadVista(l.unidad), nombre: l.descripcion, y: window.scrollY, sp: codSp || null, visto: false, oculto: false };
+  irBalance('');
+}
+function avisoDesde(cont, d) {
+  if (desdeApu && balAlc) desdeApu = null;
+  if (!desdeApu) return;
+  const dA = desdeApu, f = dA.f, x = d.lista.find(x => x.k === dA.k);
+  cont.insertAdjacentHTML('afterbegin', `<div class="desde" role="status"><button class="btn" id="balDesdeVolver">← Volver a la partida ${esc(f.item)}</button>` +
+    `<span><b>${esc(dA.nombre)}</b>: <span class="n">${fT(dA.v)} ${esc(dA.u)}</span> en ${dA.sp ? `la subpartida ${esc(dA.sp)} de ` : ''}la partida ${esc(f.item)} · ` +
+    (x ? `<span class="n">${x.porcentaje ? '—' : f2(x.cantidad) + ' ' + esc(unidadVista(x.unidad))}</span> en todo el proyecto (${x.nPartidas.toLocaleString('es-PE')} partida${x.nPartidas === 1 ? '' : 's'})` : 'no pesa en el costo del proyecto') +
+    `</span><span class="aviso-f" id="balDesdeFiltro" hidden></span></div>`);
+  $('#balDesdeVolver').addEventListener('click', () => history.back());
+  marcarDesde(!dA.visto || dA.oculto);
+}
+// Marca la línea en la tabla (abre su categoría si está entre las que no se muestran). Si los filtros la esconden, lo dice en ámbar.
+function marcarDesde(bajar) {
+  const dA = desdeApu, av = $('#balDesdeFiltro');
+  if (!dA || !av || desdeMarcando) return;
+  const x = datosBalance().lista.find(x => x.k === dA.k); if (!x) return;
+  const fila = () => [...document.querySelectorAll('#balRes td.ins button')].find(b => b.dataset.ins === x.k)?.closest('tr');
+  let tr = fila();
+  if (!tr && filtradosBalance().includes(x)) { balEstado.abiertos.add(x.categoria); desdeMarcando = true; pintarBalanceRes(); desdeMarcando = false; tr = fila(); }
+  av.hidden = !!tr;
+  av.textContent = tr ? '' : `«${x.descripcion}» no está en la tabla por los filtros: «Limpiar filtros» lo muestra.`;
+  dA.visto = true; dA.oculto = !tr;
+  if (!tr) return;
+  tr.classList.add('desde-fila');
+  const nota = notaDesde(x);
+  if (nota) tr.insertAdjacentHTML('afterend', `<tr class="desde-nota"><td colspan="9">${nota}</td></tr>`);
+  // se busca la fila otra vez en el cuadro siguiente: aplicarHash puede volver a pintar el Balance (popstate y hashchange)
+  if (bajar) requestAnimationFrame(() => $('#balRes tr.desde-fila')?.scrollIntoView({ block: 'center' }));
+}
+// Nota gris (PLAN 01 §4): la suma de «Cant. total» de todas las partidas (sin redondear fila por fila) es la cantidad real
+// del APU; el Balance, como Power Cost, saca la cantidad del costo y reparte el redondeo de cada partida. No toca insumosDe.
+function notaDesde(x) {
+  if (x.porcentaje) return '';
+  const r2 = Lector.r2, real = r2(x.real), dif = r2(x.cantidad - real);
+  if (Math.abs(dif) < 0.005) return '';
+  let directo = 0;
+  for (const f of datosBalance().partidas) {
+    const m = f.metrado || 0; if (!f.apu || !m) continue;
+    for (const l of f.apu.lineas) if (!(l.categoria === 'sp' && l.subpartida) && !esPct(l) && l.codigo + '|' + l.descripcion === x.k) directo += m * (l.cantidad || 0);
+  }
+  const sp = x.real - directo, u = esc(unidadVista(x.unidad));
+  return `En el APU: ${f2(real)} ${u} en ${x.nPartidas.toLocaleString('es-PE')} partida${x.nPartidas === 1 ? '' : 's'} (cantidad × metrado)` +
+    (Math.abs(sp) >= 0.005 ? `, ${f2(r2(sp))} de ellas dentro de subpartidas` : '') +
+    `. El Balance da ${f2(x.cantidad)} (${dif > 0 ? '+' : '−'}${f2(Math.abs(dif))}): como Power Cost, saca la cantidad del costo y reparte el redondeo de cada partida.`;
+}
+// J6b · De vuelta del Balance («← Volver», Atrás o la pestaña «Presupuesto»): a la misma altura, con la línea marcada.
+function volverAlApu() {
+  const { f, kApu, y } = desdeApu; desdeApu = null;
+  if (D.filas[sel] !== f) return;
+  window.scrollTo(0, y);
+  const tr = [...document.querySelectorAll('#apu tr.linea')].find(t => t.dataset.k === kApu);
+  if (tr) { tr.classList.add('vuelta'); setTimeout(() => tr.classList.remove('vuelta'), 2200); }
+}
 
 // Insumos de un conjunto de partidas como la lista de insumos de Power Cost y de vidBIM Costos (29/10/2026): en cada partida,
 // el monto de cada línea es metrado × cantidad × precio (en los %MO, metrado × parcial) y el redondeo del parcial de la partida
@@ -1542,6 +1766,7 @@ function pintarBalance() {
   $('#balMas').addEventListener('click', () => { b.masFiltros = !b.masFiltros; pintarBalance(); });
   $('#balLimpiar').addEventListener('click', () => { Object.assign(b, { q: '', cats: new Set(['mo', 'mat', 'eq', 'sc']), pmin: null, pmax: null, cmin: null, cmax: null, orden: 'costo', dir: -1, soloA: false }); b.abiertos.clear(); pintarBalance(); });
   $('#balExportar').addEventListener('click', exportarBalance);
+  avisoDesde(cont, d);   // J6
 }
 
 function filtradosBalance() {
@@ -1622,6 +1847,7 @@ function pintarBalanceRes() {
     if (abrir) pintarPareto();
   });
   pintarPareto();
+  marcarDesde(false);   // J6: con otros filtros la línea sigue marcada
 }
 
 // ───────────── Pareto de los 15 mayores (como la curva ABC de vidBIM Costos) ─────────────
