@@ -2318,9 +2318,20 @@ function dondeSeUsa(k, itemActual, dentro) {
   if (usos.length > max) h += `<li><span class="it">…</span><span style="color:var(--gris)">${(usos.length - max).toLocaleString('es-PE')} partidas más</span><span></span></li>`;
   h += '</ul>';
   $('#usosCuerpo').innerHTML = h;
-  $('#usosCuerpo').querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => { cerrar(); irA(+x.dataset.ir); }));
+  $('#usosCuerpo').querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => { cerrar(); irAlApu(+x.dataset.ir, k); }));
   abrir('usos');
   $('#usosCuerpo').scrollTop = 0;
+}
+// Del Balance al APU (07-11-2026): la partida elegida en «dónde se usa» se abre en el Presupuesto con la línea del insumo
+// marcada. Atrás o la pestaña «Balance de insumos» vuelven al Balance, con sus filtros. Desde el Presupuesto, como siempre.
+function irAlApu(i, k) {
+  if (vistaActual !== 'balance') { irA(i); return; }
+  desdeApu = null;
+  irPresupuesto(); irA(i, false);
+  const tr = [...document.querySelectorAll('#apu tr.linea')].find(t => t.dataset.k === k);
+  if (!tr) return;
+  tr.scrollIntoView({ block: 'center' });
+  tr.classList.add('vuelta'); setTimeout(() => tr.classList.remove('vuelta'), 2200);
 }
 </script>
 </body>
