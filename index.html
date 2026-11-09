@@ -244,6 +244,7 @@ td.ins .versp:hover{text-decoration:underline}
 .cajon h3 small{color:var(--gris);font-weight:400;font-family:var(--f-datos)}
 .herrapu{display:flex;gap:12px;align-items:center;padding:0 16px 12px;font-size:var(--t-aux);color:var(--gris);flex-wrap:wrap}
 .herrapu label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--tinta-2)}
+.herrapu .ch-tot{margin-left:auto}
 .cat{border-top:1px solid var(--linea)}
 .cat header{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;align-items:baseline;padding:12px 16px 6px}
 .cat header .vercalc{align-self:center;font-size:var(--t-aux);padding:3px 10px;border:1px solid var(--linea-fuerte);background:var(--superficie);color:var(--tinta-2);border-radius:999px;white-space:nowrap}
@@ -1364,6 +1365,9 @@ const AYUDA_COL = {
 };
 function q(txt, entrada) { return `<button class="q" title="${esc(txt)}" onclick="abrirComo('${entrada}')" aria-label="Ayuda">?</button>`; }
 
+// J8 · Casilla «Cant. total»: encendida de entrada; la elección se recuerda en este navegador, para todos los proyectos.
+// Apagada, el APU queda como antes de la columna (se queda el chip «Metrado»).
+let verTot = leer('visor.cantTotal') !== '0';
 function pintarApu(f) {
   const cont = $('#apu');
   if (!f.esPartida) { pintarResumen(f); return; }
@@ -1380,14 +1384,14 @@ function pintarApu(f) {
   const cuadrilla = a.lineas.filter(l => l.categoria === 'mo' && l.cuadrilla != null)
     .map(l => `${fn(l.cuadrilla)} ${esc(plural(l.descripcion.toLowerCase(), l.cuadrilla))}`).join(' · ');
   const nMo = a.lineas.filter(l => l.categoria === 'mo').length;
-  const m = f.metrado, up = unidadPartida(f), hayM = !!m, col = m != null;   // J4: sin metrado en el presupuesto, no hay columna
+  const m = f.metrado, up = unidadPartida(f), hayM = !!m, conM = m != null, col = conM && verTot;   // J4: sin metrado en el presupuesto, no hay columna · J8: ni con la casilla apagada
   const metTxt = col ? `× ${f2(m)} ${up}` : '';
   let h = miga(f);
   h += `<div class="cabpartida"><div><div class="it">Partida ${esc(f.item)}</div><h1>${esc(f.descripcion)}</h1><div class="chips">` +
     `<span class="ch-und">Unidad <b>${esc(f.unidad || a.unidad)}</b></span>` +
     (a.rendimiento ? `<span>Rendimiento <b>${f4(a.rendimiento)} ${esc(a.unidad)}/día</b></span>` : `<span>Rendimiento <b>—</b></span>`) +
     (cuadrilla ? `<span>Cuadrilla <b>${cuadrilla}</b></span>` : '') +
-    (col ? `<span class="ch-met${hayM ? '' : ' cero'}">Metrado <b>${f2(m)} ${esc(f.unidad)}</b></span>` : '') +
+    (conM ? `<span class="ch-met${hayM ? '' : ' cero'}">Metrado <b>${f2(m)} ${esc(f.unidad)}</b></span>` : '') +
     `</div></div><div class="pu"><div class="lbl">Precio unitario</div><div class="val"><small>S/</small>${f2(cu)}</div><div class="por">por ${esc(f.unidad || a.unidad)} · suma de ${cats.length === 5 ? 'las cinco categorías' : 'las cuatro categorías'}</div></div></div>`;
   if (a.diferencias.length) h += `<div class="revisar">Al rehacer las cuentas no cierra: ${esc(a.diferencias.slice(0, 4).join(' · '))}. Revise este APU en el programa.</div>`;
   if (f.precio != null && Math.abs(f.precio - cu) > 0.005) h += `<div class="revisar">El presupuesto usa P.U. S/ ${f2(f.precio)} y el APU da S/ ${f2(cu)}.</div>`;
@@ -1396,7 +1400,8 @@ function pintarApu(f) {
     `</div><div class="ley">` + cats.map(([c, n]) => `<span class="${c}">${n} <b>${f2(sub(c))}</b>${sub(c) > 0 ? ` · ${pct(c).toFixed(1)} %` : ''}</span>`).join('') + `</div></div>`;
   if (col && !hayM) h += `<div class="sinmet">Metrado 0.00 ${up}: el APU vale por ${up} y no hay total en la partida.</div>`;   // J4
   h += `<div class="herrapu"><span>«Ver cálculo»: de dónde sale cada número</span><span>·</span><span>Clic en una línea: su cálculo</span><span>·</span><span>Clic en un insumo: dónde más se usa</span>` +
-    (hayM ? `<span>·</span><span>Clic en la cantidad total: su línea en el Balance</span>` : '') + `</div>`;                    // J4
+    (col && hayM ? `<span>·</span><span>Clic en la cantidad total: su línea en el Balance</span>` : '') +                     // J4
+    (conM ? `<label class="interruptor ch-tot" title="Muestra u oculta lo que lleva toda la partida de cada insumo (cantidad × metrado)"><input type="checkbox" id="chkTot"${verTot ? ' checked' : ''}> Cant. total</label>` : '') + `</div>`;   // J8
   // categorías
   cats.forEach(([c, n]) => {
     const ls = a.lineas.filter(l => l.categoria === c);
@@ -1420,7 +1425,7 @@ function pintarApu(f) {
         `<td class="num cant" data-l="Cantidad">${f4(l.cantidad)}${col ? `<span class="tp">${celdaTotal(l, f, true)}</span>` : ''}</td>` +
         (col ? `<td class="num tot" data-l="Cant. total · ${metTxt}">${celdaTotal(l, f, false)}</td>` : '') +
         `<td class="num" data-l="Precio S/">${f2(l.tipo === 'pmo' || l.tipo === 'pmt' ? l.precio ?? l.calcPrecio : l.precio)}</td><td class="num par" data-l="Parcial S/">${f2(l.parcial)}</td></tr>` +
-        `<tr class="cuenta"><td colspan="${col ? 8 : 7}">${cuenta(l, a, f)}</td></tr>`;
+        `<tr class="cuenta"><td colspan="${col ? 8 : 7}">${cuenta(l, a, col ? f : null)}</td></tr>`;                       // J8: sin «En la partida»
     });
     const suma = ls.length <= 4 ? `${n} · ${ls.map(l => f2(l.parcial)).join(' + ')}` : `${n} · suma de los ${ls.length} parciales`;
     h += `<tr class="subtotal"><td colspan="${col ? 7 : 6}">${suma}</td><td class="num">${f2(sub(c))}</td></tr></tbody></table></section>`;
@@ -1448,6 +1453,7 @@ function pintarApu(f) {
   }));
   cont.querySelectorAll('td.ins button').forEach(b => b.addEventListener('click', () => b.dataset.sp ? (spDesde = f, verSubpartida(b.dataset.sp)) : dondeSeUsa(b.dataset.ins, f.item)));   // J5: spDesde
   cont.querySelectorAll('.ir-bal').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); irAlBalance(b.dataset.k); }));                                             // J6
+  cont.querySelector('#chkTot')?.addEventListener('change', e => { verTot = e.target.checked; guardar('visor.cantTotal', verTot ? '1' : '0'); pintarApu(f); $('#chkTot')?.focus(); });   // J8
   cont.querySelectorAll('[data-ir]').forEach(x => x.addEventListener('click', () => irA(+x.dataset.ir)));
   encajarApu();                                                                                                               // J7
 }
@@ -1511,7 +1517,7 @@ let spDesde = null;
 function verSubpartida(codigo) {
   const s = D.subpartidas?.[codigo]; if (!s) return;
   const f = spDesde; spDesde = null;                                                                             // J5
-  const l0 = f && f.metrado ? f.apu?.lineas.find(l => l.codigo === codigo) : null;                                // J5
+  const l0 = f && f.metrado && verTot ? f.apu?.lineas.find(l => l.codigo === codigo) : null;                      // J5 · J8: casilla apagada, sin total
   const cantSp = l0 ? (l0.cantidad || 0) * f.metrado : 0, us = esc(unidadVista(s.unidad));                       // J5
   const cu = s.cu ?? s.calcCu;
   const usan = D.apus.filter(a => a.lineas.some(l => l.codigo === codigo));
